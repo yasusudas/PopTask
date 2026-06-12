@@ -1,20 +1,31 @@
 :root {
-  --bg: #f8fafc;
+  --bg: #f6f8fb;
   --surface: #ffffff;
+  --surface-hover: #f1f5f9;
   --text: #0f172a;
-  --text-sub: #64748b;
+  --text-sub: #475569;
+  --text-faint: #64748b;
   --border: #e2e8f0;
   --primary: #2563eb;
   --primary-dark: #1d4ed8;
+  --primary-soft: #eff6ff;
+  --success: #16a34a;
+  --success-dark: #15803d;
   --danger: #dc2626;
-  --warning-bg: #fef2f2;
+  --danger-dark: #b91c1c;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.07);
   --shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 12px 40px rgba(15, 23, 42, 0.18);
   --radius: 14px;
   --nav-height: 60px;
   --header-height: 56px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  font-family: "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+  /* z-index スケール */
+  --z-chrome: 20;
+  --z-overlay-ui: 30;
+  --z-modal: 40;
+  --z-toast: 60;
+  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", system-ui, -apple-system, sans-serif;
   color: var(--text);
 }
 
@@ -34,6 +45,8 @@ body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 button {
@@ -42,6 +55,7 @@ button {
   background: none;
   border: none;
   cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
 
 input,
@@ -68,14 +82,135 @@ select {
 
 /* ---------- アプリレイアウト ---------- */
 
-.app {
+.app-shell {
   display: flex;
-  flex-direction: column;
   height: 100%;
-  max-width: 720px;
-  margin: 0 auto;
   background: var(--bg);
 }
+
+.app-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- サイドバー (タブレット・デスクトップ) ---------- */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 232px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 18px 12px;
+  gap: 18px;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-sub);
+  text-align: left;
+}
+
+.sidebar-item:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.sidebar-item[aria-current="page"] {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.sidebar-badge {
+  margin-left: auto;
+  min-width: 24px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--text-sub);
+}
+
+.sidebar-badge.warn {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+/* ---------- トップバー (タブレット・デスクトップ) ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 64px;
+  padding: 10px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: var(--z-chrome);
+}
+
+.topbar h1 {
+  font-size: 19px;
+  font-weight: 800;
+  margin-right: auto;
+}
+
+.topbar-search {
+  width: min(320px, 38vw);
+}
+
+.topbar-create {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+}
+
+/* ---------- モバイルヘッダー ---------- */
 
 .app-header {
   display: flex;
@@ -86,7 +221,7 @@ select {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  z-index: 20;
+  z-index: var(--z-chrome);
 }
 
 .app-header h1 {
@@ -96,7 +231,7 @@ select {
   margin-right: auto;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .icon-button {
@@ -107,11 +242,47 @@ select {
   height: 44px;
   border-radius: 50%;
   color: var(--text-sub);
-  transition: background 0.15s;
 }
 
 .icon-button:hover {
-  background: rgba(15, 23, 42, 0.06);
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+/* ---------- 検索 ---------- */
+
+.search-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 21px;
+  background: var(--bg);
+  color: var(--text-faint);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.search-input input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+}
+
+.search-input input:focus {
+  outline: none;
+}
+
+.search-input.grow {
+  flex: 1;
 }
 
 .search-bar {
@@ -123,24 +294,7 @@ select {
   border-bottom: 1px solid var(--border);
 }
 
-.search-bar input {
-  flex: 1;
-  height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background: var(--bg);
-}
-
-.app-main {
-  flex: 1;
-  overflow-y: auto;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ---------- 下部タブ ---------- */
+/* ---------- 下部タブ (モバイル) ---------- */
 
 .bottom-nav {
   display: flex;
@@ -149,7 +303,7 @@ select {
   background: var(--surface);
   border-top: 1px solid var(--border);
   flex-shrink: 0;
-  z-index: 20;
+  z-index: var(--z-chrome);
 }
 
 .bottom-nav button {
@@ -161,17 +315,12 @@ select {
   gap: 2px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-sub);
+  color: var(--text-faint);
   min-height: 44px;
 }
 
 .bottom-nav button[aria-current="page"] {
   color: var(--primary);
-}
-
-.bottom-nav .nav-badge {
-  font-size: 10px;
-  line-height: 1;
 }
 
 /* ---------- フォルダフィルタ ---------- */
@@ -192,6 +341,12 @@ select {
   display: none;
 }
 
+@media (min-width: 768px) {
+  .folder-bar {
+    padding: 10px 24px;
+  }
+}
+
 .folder-chip {
   display: inline-flex;
   align-items: center;
@@ -206,6 +361,11 @@ select {
   color: var(--text-sub);
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.folder-chip:hover {
+  border-color: var(--text-faint);
+  color: var(--text);
 }
 
 .folder-chip[aria-pressed="true"] {
@@ -232,7 +392,7 @@ select {
   flex: 1;
   position: relative;
   overflow-y: auto;
-  background: linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 45%, #fdf4ff 100%);
+  background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 40%, #faf5ff 100%);
 }
 
 .balloon-field {
@@ -359,9 +519,9 @@ select {
 /* ---------- 破裂エフェクト ---------- */
 
 @keyframes balloon-pop {
-  0% { transform: scale(1); opacity: 1; }
-  35% { transform: scale(1.25); opacity: 1; }
-  100% { transform: scale(1.6); opacity: 0; }
+  0% { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 1; }
+  35% { transform: translate(var(--tx), var(--ty)) scale(1.25); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(1.6); opacity: 0; }
 }
 
 .balloon.popping {
@@ -374,7 +534,7 @@ select {
   width: 0;
   height: 0;
   pointer-events: none;
-  z-index: 15;
+  z-index: var(--z-overlay-ui);
 }
 
 @keyframes shard-fly {
@@ -400,15 +560,16 @@ select {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  color: var(--text-sub);
+  gap: 10px;
+  color: var(--text-faint);
   text-align: center;
   padding: 24px;
   pointer-events: none;
 }
 
 .empty-state .empty-icon {
-  font-size: 44px;
+  display: inline-flex;
+  color: #94a3b8;
 }
 
 .first-task-hint {
@@ -425,19 +586,36 @@ select {
   font-size: 13px;
   color: var(--text-sub);
   box-shadow: var(--shadow);
-  z-index: 11;
+  z-index: var(--z-overlay-ui);
   max-width: 230px;
 }
 
-.first-task-hint button {
-  color: var(--text-sub);
-  font-size: 16px;
-  line-height: 1;
-  padding: 4px;
-  min-width: 24px;
+@media (min-width: 768px) {
+  /* デスクトップでは新規タスクボタン (トップバー右上) の近くに表示 */
+  .first-task-hint {
+    bottom: auto;
+    top: 12px;
+    right: 24px;
+  }
 }
 
-/* ---------- FAB ---------- */
+.first-task-hint button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  padding: 4px;
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 50%;
+}
+
+.first-task-hint button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+/* ---------- FAB (モバイル) ---------- */
 
 .fab {
   position: absolute;
@@ -446,20 +624,17 @@ select {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  font-size: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--primary);
+  color: #fff;
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
-  z-index: 12;
-  transition: transform 0.15s, background 0.15s;
+  z-index: var(--z-overlay-ui);
 }
 
 .fab:hover {
   background: var(--primary-dark);
-  transform: scale(1.05);
 }
 
 /* ---------- モーダル / シート ---------- */
@@ -468,7 +643,7 @@ select {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
-  z-index: 40;
+  z-index: var(--z-modal);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -503,6 +678,7 @@ select {
   .modal-sheet {
     border-radius: 20px;
     max-height: 100%;
+    box-shadow: var(--shadow-lg);
   }
 }
 
@@ -560,6 +736,15 @@ select {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field-group input:focus,
+.field-group textarea:focus,
+.field-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .field-group textarea {
@@ -575,7 +760,7 @@ select {
 
 .field-counter {
   font-size: 11px;
-  color: var(--text-sub);
+  color: var(--text-faint);
   text-align: right;
 }
 
@@ -595,11 +780,17 @@ select {
   background: var(--surface);
 }
 
+.segmented button:hover {
+  border-color: var(--text-faint);
+}
+
 .segmented button[aria-pressed="true"] {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;
 }
+
+/* ---------- ボタン ---------- */
 
 .button-primary {
   min-height: 48px;
@@ -611,15 +802,26 @@ select {
   padding: 0 18px;
 }
 
+.button-primary:hover {
+  background: var(--primary-dark);
+}
+
 .button-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
+.button-primary.with-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
 .button-complete {
   min-height: 52px;
   border-radius: 12px;
-  background: #16a34a;
+  background: var(--success);
   color: #fff;
   font-weight: 800;
   font-size: 16px;
@@ -627,6 +829,10 @@ select {
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.button-complete:hover {
+  background: var(--success-dark);
 }
 
 .button-secondary {
@@ -638,9 +844,13 @@ select {
   padding: 0 16px;
 }
 
+.button-secondary:hover {
+  background: var(--surface-hover);
+}
+
 .button-text-danger {
   min-height: 44px;
-  color: var(--text-sub);
+  color: var(--text-faint);
   font-size: 13px;
   text-decoration: underline;
   align-self: center;
@@ -659,13 +869,26 @@ select {
   padding: 0 16px;
 }
 
+.button-danger:hover {
+  background: var(--danger-dark);
+}
+
 /* ---------- 履歴カード (完了 / ゴミ箱) ---------- */
 
 .card-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 10px;
   padding: 14px;
+  align-content: start;
+}
+
+@media (min-width: 768px) {
+  .card-list {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px;
+    padding: 20px 24px;
+  }
 }
 
 .history-card {
@@ -676,8 +899,14 @@ select {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 12px 14px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   text-align: left;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.history-card:hover {
+  box-shadow: var(--shadow);
+  border-color: #cbd5e1;
 }
 
 .history-card .card-color {
@@ -705,7 +934,7 @@ select {
 
 .history-card .card-sub {
   font-size: 12px;
-  color: var(--text-sub);
+  color: var(--text-faint);
   margin-top: 4px;
   display: flex;
   flex-wrap: wrap;
@@ -730,8 +959,18 @@ select {
   white-space: nowrap;
 }
 
+.card-action:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
 .card-action.danger {
   color: var(--danger);
+}
+
+.card-action.danger:hover {
+  background: #fef2f2;
+  border-color: var(--danger);
 }
 
 /* ---------- トースト ---------- */
@@ -749,9 +988,15 @@ select {
   padding: 10px 16px;
   border-radius: 12px;
   font-size: 14px;
-  z-index: 60;
+  z-index: var(--z-toast);
   box-shadow: var(--shadow-lg);
   max-width: calc(100% - 32px);
+}
+
+@media (min-width: 768px) {
+  .toast {
+    bottom: 24px;
+  }
 }
 
 .toast button {
@@ -759,6 +1004,10 @@ select {
   font-weight: 800;
   white-space: nowrap;
   min-height: 32px;
+}
+
+.toast button:hover {
+  color: #bfdbfe;
 }
 
 .toast.error {
@@ -794,22 +1043,18 @@ select {
   min-height: 44px;
   border-radius: 12px;
   border: 3px solid transparent;
-  position: relative;
-}
-
-.color-swatch[aria-pressed="true"] {
-  border-color: var(--text);
-}
-
-.color-swatch[aria-pressed="true"]::after {
-  content: "✓";
-  position: absolute;
-  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-weight: 800;
+}
+
+.color-swatch:hover {
+  border-color: #cbd5e1;
+}
+
+.color-swatch[aria-pressed="true"] {
+  border-color: var(--text);
 }
 
 /* ---------- 設定画面 ---------- */
@@ -820,6 +1065,15 @@ select {
   flex-direction: column;
   gap: 20px;
   overflow-y: auto;
+  width: 100%;
+  max-width: 760px;
+}
+
+@media (min-width: 768px) {
+  .settings-screen {
+    padding: 24px;
+    margin: 0 auto;
+  }
 }
 
 .settings-section {
@@ -830,6 +1084,13 @@ select {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 768px) {
+  .settings-section {
+    padding: 20px;
+  }
 }
 
 .settings-section h3 {
@@ -840,7 +1101,7 @@ select {
 .settings-section p {
   font-size: 13px;
   color: var(--text-sub);
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .settings-row {
@@ -861,7 +1122,7 @@ select {
 }
 
 .permission-badge.granted {
-  color: #16a34a;
+  color: var(--success);
 }
 
 .permission-badge.denied {

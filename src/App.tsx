@@ -3,7 +3,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "./db/db";
 import { repairIntegrity, SettingsRepository, TaskRepository } from "./db/repositories";
 import { checkAndNotify } from "./lib/notifications";
-import { sortActiveTasks } from "./lib/size";
+import { isOverdue, sortActiveTasks } from "./lib/size";
+import { useMediaQuery } from "./hooks/useMediaQuery";
 import type { FolderFilter, MainTab, Task } from "./types";
 import { BalloonField } from "./components/BalloonField";
 import { BottomNav } from "./components/BottomNav";
@@ -11,12 +12,21 @@ import { CompletedList, TrashList } from "./components/HistoryLists";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { FolderFilterBar } from "./components/FolderFilterBar";
 import { FolderManageModal } from "./components/FolderManageModal";
-import { SearchBar } from "./components/SearchBar";
+import { SearchBar, SearchInput } from "./components/SearchBar";
 import { SettingsScreen } from "./components/SettingsScreen";
+import { Sidebar } from "./components/Sidebar";
 import { TaskCreateModal } from "./components/TaskCreateModal";
 import { TaskDetailSheet } from "./components/TaskDetailSheet";
 import { Toast, type ToastState } from "./components/Toast";
-import { BackIcon, GearIcon, SearchIcon } from "./components/icons";
+import {
+  BackIcon,
+  BalloonLogo,
+  BalloonTabIcon,
+  CloseIcon,
+  GearIcon,
+  PlusIcon,
+  SearchIcon,
+} from "./components/icons";
 import type { TaskFormValues } from "./components/TaskForm";
 
 const POP_DURATION_MS = 420;
@@ -26,6 +36,12 @@ const STATUS_BY_TAB: Record<MainTab, Task["status"]> = {
   active: "active",
   completed: "completed",
   trash: "trashed",
+};
+
+const TAB_TITLES: Record<MainTab, string> = {
+  active: "未完了",
+  completed: "完了",
+  trash: "ゴミ箱",
 };
 
 export default function App() {
@@ -42,6 +58,7 @@ export default function App() {
   const [toast, setToast] = useState<ToastState | null>(null);
   const [now, setNow] = useState(() => new Date());
 
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const toastTimer = useRef<number | undefined>(undefined);
   const lastNotifyCheck = useRef(new Date());
 
@@ -139,6 +156,9 @@ export default function App() {
       ),
     [visibleTasks],
   );
+
+  const allActive = useMemo(() => tasks.filter((t) => t.status === "active"), [tasks]);
+  const overdueCount = useMemo(() => allActive.filter((t) => isOverdue(t.dueAt, now)).length, [allActive, now]);
 
   const detailTask = detailTaskId ? tasks.find((t) => t.id === detailTaskId) ?? null : null;
 
@@ -246,120 +266,178 @@ export default function App() {
     setPermanentDeleteId(null);
   };
 
+  // 初回起動の空状態でのみ表示する控えめなヒント
   const showFirstTaskHint =
-    view === "main" && tab === "active" && settings != null && !settings.firstTaskHintDismissed;
+    view === "main" &&
+    tab === "active" &&
+    allActive.length === 0 &&
+    settings != null &&
+    !settings.firstTaskHintDismissed;
 
-  return (
-    <div className="app">
-      <header className="app-header">
-        {view === "settings" ? (
-          <>
-            <button type="button" className="icon-button" onClick={() => setView("main")} aria-label="戻る">
-              <BackIcon />
-            </button>
-            <h1>設定</h1>
-          </>
-        ) : (
-          <>
-            <h1>
-              <span aria-hidden="true">🎈</span> PopTask
-            </h1>
-            <button
-              type="button"
-              className="icon-button"
-              onClick={() => setSearchOpen((v) => !v)}
-              aria-label="検索"
-              aria-expanded={searchOpen}
-            >
-              <SearchIcon />
-            </button>
-            <button type="button" className="icon-button" onClick={() => setView("settings")} aria-label="設定">
-              <GearIcon />
-            </button>
-          </>
-        )}
-      </header>
-
+  const mainContent = (
+    <main className="app-main">
       {view === "settings" ? (
-        <main className="app-main">
-          <SettingsScreen
-            notificationsEnabled={settings?.notificationsEnabled ?? false}
-            onNotify={(message, error) => showToast({ message, error })}
-          />
-        </main>
+        <SettingsScreen
+          notificationsEnabled={settings?.notificationsEnabled ?? false}
+          onNotify={(message, error) => showToast({ message, error })}
+        />
       ) : (
         <>
-          {searchOpen && (
-            <SearchBar
-              onChange={setSearchQuery}
-              onClose={() => {
-                setSearchOpen(false);
-                setSearchQuery("");
-              }}
+          {tab === "active" && (
+            <>
+              <BalloonField
+                tasks={activeTasks}
+                folders={folderMap}
+                now={now}
+                poppingIds={poppingIds}
+                onTapTask={setDetailTaskId}
+              />
+              {activeTasks.length === 0 && (
+                <div className="empty-state">
+                  <span className="empty-icon">
+                    <BalloonTabIcon size={48} />
+                  </span>
+                  <p>{searchQuery ? "一致するタスクがありません" : "タスクはありません"}</p>
+                </div>
+              )}
+              {showFirstTaskHint && (
+                <div className="first-task-hint">
+                  <span>このボタンから最初のタスクを追加</span>
+                  <button
+                    type="button"
+                    aria-label="ヒントを閉じる"
+                    onClick={() => void SettingsRepository.update({ firstTaskHintDismissed: true })}
+                  >
+                    <CloseIcon size={15} />
+                  </button>
+                </div>
+              )}
+              {!isDesktop && (
+                <button type="button" className="fab" onClick={() => void openCreate()} aria-label="タスクを作成">
+                  <PlusIcon size={26} />
+                </button>
+              )}
+            </>
+          )}
+          {tab === "completed" && (
+            <CompletedList
+              tasks={completedTasks}
+              folders={folderMap}
+              now={now}
+              onReactivate={(id) => void reactivateTask(id)}
+              onDelete={(id) => void trashTask(id)}
             />
           )}
-          <FolderFilterBar
-            folders={folders}
-            filter={folderFilter}
-            onChange={setFolderFilter}
-            onManage={() => setFolderManageOpen(true)}
-          />
-          <main className="app-main">
-            {tab === "active" && (
+          {tab === "trash" && (
+            <TrashList
+              tasks={trashedTasks}
+              folders={folderMap}
+              now={now}
+              onRestore={(id) => void restoreTask(id)}
+              onDeletePermanently={setPermanentDeleteId}
+            />
+          )}
+        </>
+      )}
+    </main>
+  );
+
+  return (
+    <div className="app-shell">
+      {isDesktop && (
+        <Sidebar
+          tab={tab}
+          view={view}
+          activeCount={allActive.length}
+          overdueCount={overdueCount}
+          onSelectTab={(next) => {
+            setView("main");
+            setTab(next);
+          }}
+          onOpenSettings={() => setView("settings")}
+        />
+      )}
+
+      <div className="app-content">
+        {isDesktop ? (
+          <header className="topbar">
+            <h1>{view === "settings" ? "設定" : TAB_TITLES[tab]}</h1>
+            {view === "main" && (
               <>
-                <BalloonField
-                  tasks={activeTasks}
-                  folders={folderMap}
-                  now={now}
-                  poppingIds={poppingIds}
-                  onTapTask={setDetailTaskId}
-                />
-                {activeTasks.length === 0 && (
-                  <div className="empty-state">
-                    <span className="empty-icon" aria-hidden="true">🎈</span>
-                    <p>{searchQuery ? "一致するタスクがありません" : "タスクはありません"}</p>
-                  </div>
+                <SearchInput onChange={setSearchQuery} className="topbar-search" />
+                {tab === "active" && (
+                  <button type="button" className="button-primary topbar-create" onClick={() => void openCreate()}>
+                    <PlusIcon size={18} />
+                    新規タスク
+                  </button>
                 )}
-                {showFirstTaskHint && (
-                  <div className="first-task-hint">
-                    <span>このボタンから最初のタスクを追加</span>
-                    <button
-                      type="button"
-                      aria-label="ヒントを閉じる"
-                      onClick={() => void SettingsRepository.update({ firstTaskHintDismissed: true })}
-                    >
-                      ×
-                    </button>
-                  </div>
-                )}
-                <button type="button" className="fab" onClick={() => void openCreate()} aria-label="タスクを作成">
-                  +
+              </>
+            )}
+          </header>
+        ) : (
+          <header className="app-header">
+            {view === "settings" ? (
+              <>
+                <button type="button" className="icon-button" onClick={() => setView("main")} aria-label="戻る">
+                  <BackIcon />
+                </button>
+                <h1>設定</h1>
+              </>
+            ) : (
+              <>
+                <h1>
+                  <BalloonLogo />
+                  PopTask
+                </h1>
+                <button
+                  type="button"
+                  className="icon-button"
+                  onClick={() => setSearchOpen((v) => !v)}
+                  aria-label="検索"
+                  aria-expanded={searchOpen}
+                >
+                  <SearchIcon />
+                </button>
+                <button type="button" className="icon-button" onClick={() => setView("settings")} aria-label="設定">
+                  <GearIcon />
                 </button>
               </>
             )}
-            {tab === "completed" && (
-              <CompletedList
-                tasks={completedTasks}
-                folders={folderMap}
-                now={now}
-                onReactivate={(id) => void reactivateTask(id)}
-                onDelete={(id) => void trashTask(id)}
-              />
-            )}
-            {tab === "trash" && (
-              <TrashList
-                tasks={trashedTasks}
-                folders={folderMap}
-                now={now}
-                onRestore={(id) => void restoreTask(id)}
-                onDeletePermanently={setPermanentDeleteId}
-              />
-            )}
-          </main>
-        </>
-      )}
+          </header>
+        )}
 
-      <BottomNav tab={tab} onChange={setTab} />
+        {view === "main" && (
+          <>
+            {!isDesktop && searchOpen && (
+              <SearchBar
+                onChange={setSearchQuery}
+                onClose={() => {
+                  setSearchOpen(false);
+                  setSearchQuery("");
+                }}
+              />
+            )}
+            <FolderFilterBar
+              folders={folders}
+              filter={folderFilter}
+              onChange={setFolderFilter}
+              onManage={() => setFolderManageOpen(true)}
+            />
+          </>
+        )}
+
+        {mainContent}
+
+        {!isDesktop && (
+          <BottomNav
+            tab={tab}
+            onChange={(next) => {
+              setView("main");
+              setTab(next);
+            }}
+          />
+        )}
+      </div>
 
       {createOpen && (
         <TaskCreateModal
