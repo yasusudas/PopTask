@@ -4,6 +4,7 @@ import { FOLDER_COLORS, colorHex, pickUnusedColor } from "../lib/colors";
 import { FolderRepository } from "../db/repositories";
 import { ModalSheet } from "./ModalSheet";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { CheckIcon, PlusIcon } from "./icons";
 
 interface FolderManageModalProps {
   folders: Folder[];
@@ -119,7 +120,9 @@ export function FolderManageModal({ folders, onClose, onError }: FolderManageMod
                   aria-pressed={editor.colorId === c.id}
                   aria-label={c.label}
                   onClick={() => setEditor({ ...editor, colorId: c.id })}
-                />
+                >
+                  {editor.colorId === c.id && <CheckIcon size={18} />}
+                </button>
               ))}
             </div>
           </div>
@@ -147,8 +150,9 @@ export function FolderManageModal({ folders, onClose, onError }: FolderManageMod
             </button>
           </div>
         ))}
-        <button type="button" className="button-primary" onClick={openCreate}>
-          + 新しいフォルダ
+        <button type="button" className="button-primary with-icon" onClick={openCreate}>
+          <PlusIcon size={18} />
+          新しいフォルダ
         </button>
       </div>
     </ModalSheet>

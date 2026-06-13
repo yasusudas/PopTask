@@ -2,6 +2,7 @@ import type { Folder, Task } from "../types";
 import { TRASH_RETENTION_DAYS } from "../types";
 import { colorHex, UNFILED_COLOR } from "../lib/colors";
 import { formatDateTime, formatDue, trashDaysLeft } from "../lib/time";
+import { CheckCircleIcon, TrashIcon } from "./icons";
 
 interface CardProps {
   task: Task;
@@ -28,7 +29,9 @@ export function CompletedList({ tasks, folders, now, onReactivate, onDelete }: C
   if (tasks.length === 0) {
     return (
       <div className="empty-state" style={{ position: "static", padding: 48 }}>
-        <span className="empty-icon" aria-hidden="true">🎈</span>
+        <span className="empty-icon">
+          <CheckCircleIcon size={44} />
+        </span>
         <p>完了したタスクはまだありません</p>
       </div>
     );
@@ -74,7 +77,9 @@ export function TrashList({ tasks, folders, now, onRestore, onDeletePermanently 
   if (tasks.length === 0) {
     return (
       <div className="empty-state" style={{ position: "static", padding: 48 }}>
-        <span className="empty-icon" aria-hidden="true">🗑️</span>
+        <span className="empty-icon">
+          <TrashIcon size={44} />
+        </span>
         <p>ゴミ箱は空です</p>
       </div>
     );

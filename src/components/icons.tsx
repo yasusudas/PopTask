@@ -2,6 +2,35 @@ interface IconProps {
   size?: number;
 }
 
+/** PopTaskロゴ (自作SVG・権利クリーン) */
+export function BalloonLogo({ size = 26 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <ellipse cx="16" cy="13" rx="9.5" ry="11" fill="#2563EB" />
+      <ellipse cx="12.5" cy="9.5" rx="3" ry="4" fill="#93C5FD" opacity="0.85" />
+      <path d="M16 24.5l-1.7 2.8h3.4z" fill="#2563EB" />
+      <path d="M16 27.5q-2 2.4 0 4.5" stroke="#94A3B8" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function PlusIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
+export function CheckIcon({ size = 20 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
+
 export function GearIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

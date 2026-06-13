@@ -26,12 +26,15 @@ export function isOverdue(dueAtIso: string, now: Date = new Date()): boolean {
 
 /**
  * 風船の直径 (px)。
- * 最小: 画面幅の約19% (可読性目安 88px)、最大: 画面幅の35%以下かつ160px以下。
+ * 最小: 基準幅の約19% (可読性目安 88px)、最大: 画面幅の35%以下かつ160px以下。
+ * 画面幅の%ルールはスマートフォン想定のため、基準幅を480pxで頭打ちにして
+ * デスクトップでもレベル差が直径に反映されるようにする。
  * レベル1〜10を線形補間。
  */
 export function balloonDiameter(level: number, fieldWidth: number): number {
+  const refWidth = Math.min(fieldWidth, 480);
   const max = Math.max(88, Math.min(fieldWidth * 0.35, 160));
-  const min = Math.min(Math.max(88, fieldWidth * 0.19), max);
+  const min = Math.min(Math.max(88, refWidth * 0.19), max);
   return min + ((max - min) * (level - 1)) / 9;
 }
 

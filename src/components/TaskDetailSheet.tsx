@@ -1,6 +1,7 @@
 import type { Folder, Task } from "../types";
 import { ModalSheet } from "./ModalSheet";
 import { TaskForm, type TaskFormValues } from "./TaskForm";
+import { CheckIcon } from "./icons";
 
 interface TaskDetailSheetProps {
   task: Task;
@@ -16,7 +17,8 @@ export function TaskDetailSheet({ task, folders, onComplete, onSave, onDelete, o
     <ModalSheet title="タスクの詳細" onClose={onClose}>
       <div style={{ padding: "0 16px" }}>
         <button type="button" className="button-complete" style={{ width: "100%" }} onClick={onComplete}>
-          ✓ 完了して風船を割る
+          <CheckIcon size={20} />
+          完了して風船を割る
         </button>
       </div>
       <TaskForm
