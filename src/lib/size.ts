@@ -24,6 +24,19 @@ export function isOverdue(dueAtIso: string, now: Date = new Date()): boolean {
   return now.getTime() >= new Date(dueAtIso).getTime();
 }
 
+/** 点滅で緊急を知らせる残り時間 (期限の1時間前から) */
+export const IMMINENT_WINDOW_HOURS = 1;
+
+/**
+ * 期限まで残り1時間以内で、まだ期限内のタスク。
+ * サイズ変化だけでは気づきにくい締切直前を点滅で強調するための判定。
+ */
+export function isImminent(dueAtIso: string, now: Date = new Date()): boolean {
+  const due = new Date(dueAtIso).getTime();
+  const t = now.getTime();
+  return t < due && due - t <= IMMINENT_WINDOW_HOURS * HOUR_MS;
+}
+
 /**
  * 風船の直径 (px)。
  * 最小: 基準幅の約19% (可読性目安 88px)、最大: 画面幅の35%以下かつ160px以下。

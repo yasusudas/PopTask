@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Folder, Task } from "../types";
 import { colorHex, textColorFor, UNFILED_COLOR, WARNING_COLOR } from "../lib/colors";
-import { formatDue, formatOverdue } from "../lib/time";
-import { balloonDiameter, isOverdue, sizeLevel } from "../lib/size";
+import { formatDue, formatOverdue, formatTimeLeft } from "../lib/time";
+import { balloonDiameter, isImminent, isOverdue, sizeLevel } from "../lib/size";
 import { BalloonEngine, generateInitialLayout } from "../physics/engine";
 
 const TAP_THRESHOLD_PX = 8;
@@ -75,6 +75,7 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
   const balloons = useMemo(() => {
     return tasks.map((task) => {
       const overdue = isOverdue(task.dueAt, now);
+      const imminent = !overdue && isImminent(task.dueAt, now);
       const level = sizeLevel(task.dueAt, task.inflationWindowHours, now);
       const diameter = width > 0 ? balloonDiameter(level, width) : 100;
       const folder = task.folderId ? folders.get(task.folderId) : undefined;
@@ -83,6 +84,7 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
       return {
         task,
         overdue,
+        imminent,
         level,
         diameter,
         color,
@@ -224,6 +226,7 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
             b.task.title,
             `期限 ${formatDue(b.task.dueAt, now)}`,
             b.overdue ? `期限超過 ${formatOverdue(b.task.dueAt, now)}` : null,
+            b.imminent ? `まもなく期限 ${formatTimeLeft(b.task.dueAt, now)}` : null,
             `フォルダ ${b.folderName}`,
           ]
             .filter(Boolean)
@@ -238,7 +241,7 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
               role="button"
               tabIndex={0}
               aria-label={ariaLabel}
-              className={`balloon${b.overdue ? " overdue" : ""}${popping ? " popping" : ""}`}
+              className={`balloon${b.overdue ? " overdue" : ""}${b.imminent ? " imminent" : ""}${popping ? " popping" : ""}`}
               style={
                 {
                   width: d,
@@ -266,6 +269,11 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
               {b.overdue && (
                 <span className="balloon-overdue-label">
                   期限超過 {formatOverdue(b.task.dueAt, now)}
+                </span>
+              )}
+              {b.imminent && (
+                <span className="balloon-imminent-label">
+                  まもなく期限 {formatTimeLeft(b.task.dueAt, now)}
                 </span>
               )}
               <span className="balloon-title">{b.task.title}</span>

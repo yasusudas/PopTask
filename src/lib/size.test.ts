@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { balloonDiameter, isOverdue, sizeLevel, sortActiveTasks } from "./size";
+import { balloonDiameter, isImminent, isOverdue, sizeLevel, sortActiveTasks } from "./size";
 import type { Task } from "../types";
 
 const HOUR = 60 * 60 * 1000;
@@ -38,6 +38,22 @@ describe("isOverdue", () => {
     expect(isOverdue(dueIn(1, now), now)).toBe(false);
     expect(isOverdue(now.toISOString(), now)).toBe(true);
     expect(isOverdue(dueIn(-1, now), now)).toBe(true);
+  });
+});
+
+describe("isImminent", () => {
+  const now = new Date("2026-06-12T12:00:00.000Z");
+  it("残り1時間以内かつ期限内のときtrue", () => {
+    expect(isImminent(dueIn(0.5, now), now)).toBe(true);
+    expect(isImminent(dueIn(1, now), now)).toBe(true);
+  });
+  it("残り1時間より前はfalse", () => {
+    expect(isImminent(dueIn(1.1, now), now)).toBe(false);
+    expect(isImminent(dueIn(5, now), now)).toBe(false);
+  });
+  it("期限ちょうど・超過後はfalse (点滅ではなく超過表示へ)", () => {
+    expect(isImminent(now.toISOString(), now)).toBe(false);
+    expect(isImminent(dueIn(-0.5, now), now)).toBe(false);
   });
 });
 
