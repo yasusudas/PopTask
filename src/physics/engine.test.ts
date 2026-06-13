@@ -10,29 +10,46 @@ function makeEngine(): BalloonEngine {
 }
 
 describe("BalloonEngine ドラッグ解放", () => {
-  it("速いフリックで離してもヘリウム風船らしく緩やかな速度に収まる", () => {
+  it("速いフリックで離しても横方向へ高速に飛ばない", () => {
     const e = makeEngine();
     const b = e.upsert("a", 40, 400, 300);
     e.startDrag("a");
-    e.dragTo("a", 400, 300);
-    // 単一フレームのスパイクや勢いよく振った場合を想定した大きな速度
-    e.endDrag("a", 5000, 0);
+    e.dragTo("a", 600, 300);
+    e.endDrag("a");
     expect(Math.abs(b.vx)).toBeLessThanOrEqual(200);
   });
 
-  it("解放後に画面を横切るような長距離移動をしない", () => {
+  it("解放後に画面を横切るような長距離の水平移動をしない", () => {
     const e = makeEngine();
     const b = e.upsert("a", 40, 400, 300);
     e.startDrag("a");
-    e.dragTo("a", 400, 300);
-    e.endDrag("a", 5000, 0);
+    e.dragTo("a", 600, 300);
     const startX = b.x;
+    e.endDrag("a");
     let maxExcursion = 0;
     for (let i = 0; i < 90; i++) {
       e.step(1 / 60);
       maxExcursion = Math.max(maxExcursion, Math.abs(b.x - startX));
     }
-    expect(maxExcursion).toBeLessThan(200);
+    expect(maxExcursion).toBeLessThan(120);
+  });
+
+  it("どの方向にドラッグして離しても概ね鉛直上方向へ浮上する", () => {
+    const e = makeEngine();
+    const b = e.upsert("a", 30, 400, 200);
+    e.startDrag("a");
+    // 右下方向へドラッグ
+    e.dragTo("a", 560, 430);
+    const releaseX = b.x;
+    const releaseY = b.y;
+    e.endDrag("a");
+    for (let i = 0; i < 150; i++) e.step(1 / 60);
+    // 上方向へ移動している
+    expect(releaseY - b.y).toBeGreaterThan(80);
+    // ドラッグした横方向へ流れていかない (水平移動はごくわずか)
+    expect(Math.abs(b.x - releaseX)).toBeLessThan(40);
+    // 鉛直成分が水平成分を大きく上回る
+    expect(releaseY - b.y).toBeGreaterThan(Math.abs(b.x - releaseX) * 3);
   });
 });
 

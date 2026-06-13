@@ -37,11 +37,6 @@ interface DragState {
   startX: number;
   startY: number;
   dragging: boolean;
-  lastX: number;
-  lastY: number;
-  lastT: number;
-  vx: number;
-  vy: number;
 }
 
 export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: BalloonFieldProps) {
@@ -249,18 +244,12 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
   const handlePointerDown = useCallback((e: React.PointerEvent, id: string) => {
     if (poppingIds.has(id)) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    const t = performance.now();
     dragRef.current = {
       id,
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
       dragging: false,
-      lastX: e.clientX,
-      lastY: e.clientY,
-      lastT: t,
-      vx: 0,
-      vy: 0,
     };
   }, [poppingIds]);
 
@@ -274,17 +263,6 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
       engine.startDrag(id);
     }
     if (drag.dragging) {
-      const t = performance.now();
-      const dtMs = Math.max(1, t - drag.lastT);
-      const instVx = ((e.clientX - drag.lastX) / dtMs) * 1000;
-      const instVy = ((e.clientY - drag.lastY) / dtMs) * 1000;
-      // 単一フレームのスパイクを抑えるため指数移動平均で平滑化する
-      const smooth = 0.35;
-      drag.vx = drag.vx * (1 - smooth) + instVx * smooth;
-      drag.vy = drag.vy * (1 - smooth) + instVy * smooth;
-      drag.lastX = e.clientX;
-      drag.lastY = e.clientY;
-      drag.lastT = t;
       const pos = fieldPos(e.clientX, e.clientY);
       engine.dragTo(id, pos.x, pos.y);
     }
@@ -295,11 +273,8 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
     if (!drag || drag.id !== id || drag.pointerId !== e.pointerId) return;
     dragRef.current = null;
     if (drag.dragging) {
-      // 離す直前に静止していた場合は投げない (止めたのに飛んでいく誤動作を防ぐ)
-      const idleMs = performance.now() - drag.lastT;
-      const vx = idleMs > 90 ? 0 : drag.vx;
-      const vy = idleMs > 90 ? 0 : drag.vy;
-      engine.endDrag(id, vx, vy);
+      // ドラッグ方向に関わらず、離した位置から鉛直上方向へ浮かせる
+      engine.endDrag(id);
     } else if (!cancelled) {
       // 移動量8px未満はタップとして詳細を開く
       onTapTask(id);
