@@ -22,12 +22,12 @@ const DAMPING = 1.4; // 速度減衰
 const COLLISION_GAP = 4; // 風船同士の最小間隔
 const MAX_SPEED = 900;
 const EDGE_PAD = 6;
-// 指を離した後に残る慣性の割合。ヘリウム風船は空気抵抗で勢いをほぼ失うため小さくする
-const RELEASE_INERTIA = 0.12;
-// 指を離した直後の速度上限 (px/s)。スパイク混じりの入力でも勢いよく飛ばさない
-const MAX_RELEASE_SPEED = 180;
 // 衝突反発などで生じる速度の上限 (px/s)。重なり解消時の暴走を防ぎ緩やかに収める
 const MAX_SETTLE_SPEED = 260;
+// 上向きの浮力 (px/s^2)。ヘリウム風船として常にわずかに上昇しようとする
+const BUOYANCY = 18;
+// 指を離した瞬間に与える上向きの初速 (px/s)。どの方向にドラッグしても上へ浮かせる
+const RELEASE_RISE = 70;
 
 export class BalloonEngine {
   bodies = new Map<string, BalloonBody>();
@@ -90,13 +90,18 @@ export class BalloonEngine {
     b.y = y;
   }
 
-  endDrag(id: string, vx: number, vy: number) {
+  endDrag(id: string) {
     const b = this.bodies.get(id);
     if (!b) return;
     b.dragging = false;
-    // 指を離した後の弱い慣性。ヘリウム風船らしく勢いをほぼ残さず緩やかに浮かせる
-    b.vx = clamp(vx * RELEASE_INERTIA, -MAX_RELEASE_SPEED, MAX_RELEASE_SPEED);
-    b.vy = clamp(vy * RELEASE_INERTIA, -MAX_RELEASE_SPEED, MAX_RELEASE_SPEED);
+    // ヘリウム風船として、ドラッグ方向によらず概ね鉛直上方向へ浮かせる。
+    // 水平方向のアンカー(homeX)を離した位置へ移し、横方向の慣性・復元を消すことで
+    // 「引っ張られた方向へ流れていく」挙動をなくし、その場から真上へ浮上させる。
+    const minX = b.r + EDGE_PAD;
+    const maxX = Math.max(minX, this.width - b.r - EDGE_PAD);
+    b.homeX = clamp(b.x, minX, maxX);
+    b.vx = 0;
+    b.vy = -RELEASE_RISE;
   }
 
   step(dt: number) {
@@ -113,6 +118,8 @@ export class BalloonEngine {
       // 初期位置への弱い復元力
       b.vx += (b.homeX - b.x) * HOME_SPRING * dt;
       b.vy += (b.homeY - b.y) * HOME_SPRING * dt;
+      // 上向きの浮力 (ヘリウム風船は常に少し上へ向かう)
+      b.vy -= BUOYANCY * dt;
       // 減衰
       const decay = Math.max(0, 1 - DAMPING * dt);
       b.vx *= decay;
