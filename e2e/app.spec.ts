@@ -69,6 +69,34 @@ test("締切1時間以内のタスクは点滅(imminent)状態とまもなく期
   await expect(balloon.locator(".balloon-imminent-label")).toContainText("まもなく期限");
 });
 
+test("期限を変更すると、デザインが即時ではなく時間をかけて新しい残り時間へ遷移する", async ({ page }) => {
+  await page.goto("/");
+  await createTask(page, "期限変更のタスク", 120); // 遠い未来 = 小さい風船
+
+  const balloon = page.locator(".balloon", { hasText: "期限変更のタスク" });
+  await expect(balloon).not.toHaveClass(/imminent/);
+
+  // 詳細を開いて期限を30分後へ変更し保存
+  await balloon.click({ force: true });
+  await expect(page.getByRole("dialog", { name: "タスクの詳細" })).toBeVisible();
+  await page.fill("#task-due", localInput(new Date(Date.now() + 30 * 60 * 1000)));
+  await page.getByRole("button", { name: "変更を保存" }).click();
+
+  // 保存直後は (遷移中のため) まだ点滅状態にならない = 即時には切り替わらない
+  await expect(balloon).not.toHaveClass(/imminent/);
+
+  // 7秒のアニメーション後に新しい残り時間が反映され点滅状態になる
+  await expect(balloon).toHaveClass(/imminent/, { timeout: 10000 });
+  await expect(balloon.locator(".balloon-imminent-label")).toContainText("まもなく期限");
+});
+
+test("風船には紐 (balloon-string) が描画される", async ({ page }) => {
+  await page.goto("/");
+  await createTask(page, "紐つきタスク", 40);
+  const balloon = page.locator(".balloon", { hasText: "紐つきタスク" });
+  await expect(balloon.locator(".balloon-string")).toHaveCount(1);
+});
+
 test("初回読み込み後、オフラインでアプリを再起動できる", async ({ page, context }) => {
   await page.goto("/");
   await expect(page.getByText("PopTask")).toBeVisible();
