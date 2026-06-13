@@ -43,6 +43,22 @@ test("検索で現在のタブ内を部分一致で絞り込める", async ({ pa
   await expect(page.locator(".balloon", { hasText: "レポートを提出する" })).toHaveCount(0);
 });
 
+test("デスクトップで検索後にモバイル幅へ縮小しても、隠れたクエリでタスクが消えない", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.goto("/");
+  await createTask(page, "歯医者の予約", 48);
+  await createTask(page, "レポートを提出する", 72);
+
+  // デスクトップのトップバー検索で絞り込む
+  await page.getByLabel("タスク名・メモを検索").fill("歯医者");
+  await expect(page.locator(".balloon", { hasText: "レポートを提出する" })).toHaveCount(0);
+
+  // モバイル幅へ縮小: 検索欄が消えても全タスクが見えること
+  await page.setViewportSize({ width: 375, height: 800 });
+  await expect(page.locator(".balloon", { hasText: "歯医者の予約" })).toBeVisible();
+  await expect(page.locator(".balloon", { hasText: "レポートを提出する" })).toBeVisible();
+});
+
 test("初回読み込み後、オフラインでアプリを再起動できる", async ({ page, context }) => {
   await page.goto("/");
   await expect(page.getByText("PopTask")).toBeVisible();
