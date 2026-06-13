@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { registerSW } from "virtual:pwa-register";
 import { db } from "./db/db";
 import { repairIntegrity, SettingsRepository, TaskRepository } from "./db/repositories";
 import { checkAndNotify } from "./lib/notifications";
@@ -127,6 +128,22 @@ export default function App() {
     window.clearTimeout(toastTimer.current);
     setToast(null);
   }, []);
+
+  // Service Worker登録と非破壊的な更新案内 (仕様 15)
+  useEffect(() => {
+    const updateSW = registerSW({
+      onNeedRefresh() {
+        showToast(
+          {
+            message: "新しいバージョンがあります",
+            actionLabel: "更新する",
+            onAction: () => void updateSW(true),
+          },
+          15000,
+        );
+      },
+    });
+  }, [showToast]);
 
   // 現在のタブ + フォルダフィルタ + 検索を適用
   const visibleTasks = useMemo(() => {

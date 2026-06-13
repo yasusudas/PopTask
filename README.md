@@ -18,27 +18,24 @@
 - データはブラウザ内のIndexedDBにのみ保存 (アカウント・同期なし)
 - マルチデバイス対応UI: スマホは下部タブ+FAB、タブレット/PCはサイドバー+トップバー
 - アイコンはすべて自作SVG (絵文字・外部アイコン素材は不使用で権利クリーン)
+- PWA: Service Workerによるアプリシェルのプリキャッシュとオフライン起動、非破壊的な更新案内
 
 ## 技術構成
 
 - React 19 + TypeScript + Vite
 - IndexedDB + Dexie (`TaskRepository` / `FolderRepository` / `SettingsRepository`)
+- PWA: vite-plugin-pwa (Workbox generateSW)。通知は対応環境でService Worker経由表示
 - 物理演算・サイズ計算・状態遷移・通知候補計算は副作用のない関数として分離
-- Vitest によるユニットテスト
+- Vitest によるユニットテスト、Playwright によるE2Eテスト (オフライン起動含む)
 
 ## 開発
 
 ```bash
 npm install
-npm run dev      # 開発サーバー
-npm test         # ユニットテスト
-npm run build    # 型チェック + プロダクションビルド
+npm run dev       # 開発サーバー
+npm test          # ユニットテスト
+npm run build     # 型チェック + プロダクションビルド (Service Worker生成)
+npm run test:e2e  # E2Eテスト (ビルド + プレビューサーバーを自動起動)
 ```
-
-## 未実装 (今後の予定)
-
-- Service Worker によるアプリシェルのキャッシュとオフライン起動 (PWA)
-- Service Worker 経由の通知表示
-- E2Eテスト (Playwright)
 
 詳細仕様は `docs/PopTaskSpec.md` を参照してください。

@@ -26,6 +26,29 @@ function offsetLabel(offset: NotificationOffsetMinutes): string {
 }
 
 /**
+ * 通知を表示する。対応ブラウザではService Worker経由を優先し、
+ * 不可の場合のみページから直接表示する (仕様 9.2)。
+ */
+async function showNotification(title: string, options: NotificationOptions): Promise<void> {
+  if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration) {
+        await registration.showNotification(title, options);
+        return;
+      }
+    } catch {
+      // SW経由で表示できない場合はページからの表示にフォールバック
+    }
+  }
+  try {
+    new Notification(title, options);
+  } catch {
+    // 通知は補助機能のため、表示に失敗してもアプリ動作は継続する
+  }
+}
+
+/**
  * 未完了タスクの通知時点を判定して表示する。
  * - lastCheckedAt より後に到来した通知時点のみ対象 (遡及送信しない)
  * - NotificationReceipt により同一時点の二重送信を防ぐ
@@ -46,14 +69,10 @@ export async function checkAndNotify(lastCheckedAt: Date, now: Date = new Date()
       const receiptId = `${task.id}:${task.dueAt}:${offset}`;
       const existing = await db.notificationReceipts.get(receiptId);
       if (existing) continue;
-      try {
-        new Notification(`PopTask: ${task.title}`, {
-          body: `${offsetLabel(offset)} (期限 ${formatDue(task.dueAt, now)})`,
-          tag: receiptId,
-        });
-      } catch {
-        // 通知は補助機能のため、表示に失敗してもアプリ動作は継続する
-      }
+      await showNotification(`PopTask: ${task.title}`, {
+        body: `${offsetLabel(offset)} (期限 ${formatDue(task.dueAt, now)})`,
+        tag: receiptId,
+      });
       await db.notificationReceipts.put({
         id: receiptId,
         taskId: task.id,
