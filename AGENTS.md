@@ -10,3 +10,4 @@
 - 開発サーバーはデフォルトで `http://localhost:5173/` で起動します。Cloud VM 内のブラウザ (computerUse) からテストする場合は `npm run dev -- --host` で起動してください。
 - `npm run test:e2e` (Playwright) は `webServer` 設定でビルド + プレビューサーバー (port 4173) を自動起動します。Playwright のブラウザバイナリが未インストールの場合は `npx playwright install --with-deps` が別途必要です (update script には含めていません)。
 - 風船は自前の2D物理エンジンで浮遊・衝突します。期限変更時はサイズ・色が約7秒かけて遷移するため、操作直後は一時的にレイアウトが安定しない瞬間があります (`prefers-reduced-motion` 環境では静的表示)。
+- `src/physics/engine.ts` の `BalloonEngine` は `BalloonField` の `useRef` に1度だけ生成され保持されます。React Fast Refresh (HMR) は ref を引き継ぐため、`engine.ts` を編集しても**実行中アプリには反映されません**。物理挙動を手動検証するときは必ずページをハードリロード (Ctrl+Shift+R) して新しいエンジンインスタンスを生成してください。ロジックの単体検証は `src/physics/engine.test.ts` (Vitest) が確実です。
