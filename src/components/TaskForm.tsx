@@ -112,11 +112,6 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
       <div className="field-group">
         <span id="color-label" style={{ fontSize: 13, fontWeight: 700, color: "var(--text-sub)" }}>
           風船の色
-          {colorDisabled && (
-            <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: "var(--danger, #DC2626)" }}>
-              期限超過中は警告色固定
-            </span>
-          )}
         </span>
         <div
           className={`color-swatches task-color-swatches${colorDisabled ? " is-disabled" : ""}`}

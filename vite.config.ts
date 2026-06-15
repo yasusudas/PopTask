@@ -13,6 +13,7 @@ export default defineConfig({
       manifest: false,
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,webmanifest}"],
+        cleanupOutdatedCaches: true,
       },
     }),
   ],

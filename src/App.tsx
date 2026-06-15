@@ -8,6 +8,7 @@ import { checkAndNotify } from "./lib/notifications";
 import { isOverdue, sortActiveTasks } from "./lib/size";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import type { FolderFilter, MainTab, Task } from "./types";
+import { APP_VERSION } from "./types";
 import { BalloonField } from "./components/BalloonField";
 import { BottomNav } from "./components/BottomNav";
 import { CompletedList, TrashList } from "./components/HistoryLists";
@@ -143,7 +144,7 @@ export default function App() {
       onNeedRefresh() {
         showToast(
           {
-            message: "新しいバージョンがあります",
+            message: `新しいバージョンがあります (${APP_VERSION})`,
             actionLabel: "更新する",
             onAction: () => void updateSW(true),
           },

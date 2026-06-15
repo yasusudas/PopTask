@@ -415,11 +415,13 @@ select {
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+  isolation: isolate;
+  backface-visibility: hidden;
   will-change: transform;
   box-shadow:
-    inset -8px -10px 18px rgba(0, 0, 0, 0.18),
-    inset 8px 10px 18px rgba(255, 255, 255, 0.28),
-    0 8px 20px rgba(15, 23, 42, 0.22);
+    inset -6px -8px 14px rgba(0, 0, 0, 0.14),
+    inset 6px 8px 14px rgba(255, 255, 255, 0.22),
+    0 4px 14px rgba(15, 23, 42, 0.14);
   cursor: grab;
 }
 
@@ -427,7 +429,7 @@ select {
   cursor: grabbing;
 }
 
-/* 風船のハイライト */
+/* 風船のハイライト (blur は縁のフリンジの原因になるため使わない) */
 .balloon::before {
   content: "";
   position: absolute;
@@ -436,8 +438,7 @@ select {
   width: 26%;
   height: 18%;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
-  filter: blur(2px);
+  background: rgba(255, 255, 255, 0.42);
   transform: rotate(-25deg);
   pointer-events: none;
 }
@@ -473,7 +474,6 @@ select {
   stroke-width: 1.6;
   stroke-linecap: round;
   opacity: 0.88;
-  filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.2));
 }
 
 .balloon-title {
@@ -697,7 +697,7 @@ select {
   justify-content: center;
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
   z-index: var(--z-overlay-ui);
 }
 
@@ -915,8 +915,30 @@ select {
 }
 
 .task-color-swatches.is-disabled {
-  opacity: 0.35;
   pointer-events: none;
+}
+
+.task-color-swatches.is-disabled .color-swatch::after {
+  content: "✕";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  color: #6b7280;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.85);
+}
+
+.task-color-swatches.is-disabled .color-swatch-default {
+  color: var(--text-sub);
 }
 
 .task-color-swatches .color-swatch:disabled {

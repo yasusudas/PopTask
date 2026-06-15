@@ -238,8 +238,8 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
       for (const [id, el] of elRefs.current) {
         const body = engine.bodies.get(id);
         if (!body) continue;
-        el.style.setProperty("--tx", `${body.x - body.r}px`);
-        el.style.setProperty("--ty", `${body.y - body.r}px`);
+        el.style.setProperty("--tx", `${Math.round(body.x - body.r)}px`);
+        el.style.setProperty("--ty", `${Math.round(body.y - body.r)}px`);
       }
       raf = requestAnimationFrame(tick);
     };
