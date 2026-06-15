@@ -894,20 +894,31 @@ select {
   background: rgba(255, 255, 255, 0.9);
 }
 
-/* 「自動」スウォッチも他の色スウォッチと同じ正方形・角丸に統一する。
-   セレクタを .color-swatches 配下にして特異度を上げ、後段のフォルダ管理用
-   .color-swatch 定義 (正方形) に上書きされないようにする。 */
+/* 色スウォッチ (色付き・「自動」とも) をすべて同じ正方形・角丸に統一する。
+   .color-swatches 配下にして特異度を上げ、後段のフォルダ管理用 .color-swatch
+   定義 (width/height/min-height) に左右されず確実に正方形になるようにする。 */
+.color-swatches .color-swatch,
 .color-swatches .color-swatch-default {
-  width: auto;
+  width: 100%;
   height: auto;
+  min-height: 0;
   aspect-ratio: 1;
-  min-height: 44px;
   border-radius: 12px;
-  border: 3px solid var(--border);
+}
+
+/* 「自動」スウォッチの配色・文字・枠 */
+.color-swatches .color-swatch-default {
   background: var(--surface);
   color: var(--text-sub);
+  border: 3px solid var(--border);
   font-size: 12px;
   font-weight: 700;
+}
+
+.color-swatches .color-swatch-default.is-selected,
+.color-swatches .color-swatch-default[aria-pressed="true"] {
+  border-color: var(--text);
+  color: var(--text);
 }
 
 .color-swatch-default.is-selected::after {
