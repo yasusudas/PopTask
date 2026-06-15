@@ -17,6 +17,7 @@ export interface TaskInput {
   dueAt: string;
   inflationWindowHours: InflationWindowHours;
   folderId: string | null;
+  colorId: FolderColorId | null;
 }
 
 export const TaskRepository = {
@@ -29,6 +30,7 @@ export const TaskRepository = {
       dueAt: input.dueAt,
       inflationWindowHours: input.inflationWindowHours,
       folderId: input.folderId,
+      colorId: input.colorId ?? null,
       status: "active",
       preTrashStatus: null,
       completedAt: null,

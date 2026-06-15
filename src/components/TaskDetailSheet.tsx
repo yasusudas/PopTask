@@ -27,6 +27,7 @@ export function TaskDetailSheet({ task, folders, onComplete, onSave, onDelete, o
           title: task.title,
           dueAt: task.dueAt,
           folderId: task.folderId,
+          colorId: task.colorId ?? null,
           inflationWindowHours: task.inflationWindowHours,
           memo: task.memo,
         }}

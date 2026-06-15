@@ -1,12 +1,14 @@
 import { useState } from "react";
-import type { Folder, InflationWindowHours } from "../types";
+import type { Folder, FolderColorId, InflationWindowHours } from "../types";
 import { INFLATION_OPTIONS } from "../types";
+import { FOLDER_COLORS } from "../lib/colors";
 import { isoToLocalInput, localInputToIso } from "../lib/time";
 
 export interface TaskFormValues {
   title: string;
   dueAt: string; // UTC ISO
   folderId: string | null;
+  colorId: FolderColorId | null;
   inflationWindowHours: InflationWindowHours;
   memo: string;
 }
@@ -26,6 +28,7 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
   const [title, setTitle] = useState(initial?.title ?? "");
   const [dueLocal, setDueLocal] = useState(initial ? isoToLocalInput(initial.dueAt) : "");
   const [folderId, setFolderId] = useState<string | null>(initial?.folderId ?? defaultFolderId ?? null);
+  const [colorId, setColorId] = useState<FolderColorId | null>(initial?.colorId ?? null);
   const [inflation, setInflation] = useState<InflationWindowHours>(initial?.inflationWindowHours ?? 72);
   const [memo, setMemo] = useState(initial?.memo ?? "");
   const [errors, setErrors] = useState<{ title?: string; due?: string }>({});
@@ -48,6 +51,7 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
       title: trimmed,
       dueAt: localInputToIso(dueLocal),
       folderId,
+      colorId,
       inflationWindowHours: inflation,
       memo,
     });
@@ -101,6 +105,36 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="field-group">
+        <span id="color-label" style={{ fontSize: 13, fontWeight: 700, color: "var(--text-sub)" }}>
+          風船の色
+        </span>
+        <div className="color-swatches" role="group" aria-labelledby="color-label">
+          <button
+            type="button"
+            className={`color-swatch color-swatch-default${colorId === null ? " is-selected" : ""}`}
+            aria-pressed={colorId === null}
+            aria-label="フォルダの色に従う"
+            title="フォルダの色に従う"
+            onClick={() => setColorId(null)}
+          >
+            自動
+          </button>
+          {FOLDER_COLORS.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className={`color-swatch${colorId === c.id ? " is-selected" : ""}`}
+              style={{ backgroundColor: c.hex }}
+              aria-pressed={colorId === c.id}
+              aria-label={c.label}
+              title={c.label}
+              onClick={() => setColorId(c.id)}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="field-group">

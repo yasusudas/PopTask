@@ -119,6 +119,7 @@ function makeTask(partial: Partial<Task>): Task {
     dueAt: "2026-06-20T00:00:00.000Z",
     inflationWindowHours: 72,
     folderId: null,
+    colorId: null,
     status: "active",
     preTrashStatus: null,
     completedAt: null,

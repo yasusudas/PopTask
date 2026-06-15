@@ -149,7 +149,9 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
       const eased = inflationProgress(effIso, task.inflationWindowHours, now);
       const diameter = width > 0 ? diameterForProgress(eased, width) : 100;
       const folder = task.folderId ? folders.get(task.folderId) : undefined;
-      const baseColor = folder ? colorHex(folder.colorId) : UNFILED_COLOR;
+      const folderColor = folder ? colorHex(folder.colorId) : UNFILED_COLOR;
+      // タスク個別の色が指定されていればフォルダ色より優先する
+      const baseColor = task.colorId ? colorHex(task.colorId) : folderColor;
       const color = overdue ? WARNING_COLOR : baseColor;
       return {
         task,
@@ -159,7 +161,7 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
         color,
         textColor: textColorFor(color),
         folderName: folder?.name ?? "未分類",
-        folderColor: baseColor,
+        folderColor,
         dueText: formatDue(task.dueAt, now),
         overdueText: formatOverdue(effIso, now),
         imminentText: formatTimeLeft(effIso, now),

@@ -9,6 +9,8 @@ export interface Task {
   dueAt: string; // UTC ISO 8601
   inflationWindowHours: InflationWindowHours;
   folderId: string | null;
+  /** 風船の色を個別に上書きする。null の場合はフォルダの色を使う */
+  colorId: FolderColorId | null;
   status: TaskStatus;
   preTrashStatus: PreTrashStatus;
   completedAt: string | null;
@@ -55,7 +57,7 @@ export type MainTab = "active" | "completed" | "trash";
 export type FolderFilter = "all" | "none" | string;
 
 export const SCHEMA_VERSION = 1;
-export const APP_VERSION = "V1.3.0";
+export const APP_VERSION = "V1.4.0";
 export const TRASH_RETENTION_DAYS = 30;
 export const NOTIFICATION_OFFSETS: NotificationOffsetMinutes[] = [2880, 1440, 360, 60, 0];
 export const INFLATION_OPTIONS: { value: InflationWindowHours; label: string }[] = [
