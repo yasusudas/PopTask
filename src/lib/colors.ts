@@ -41,6 +41,22 @@ export function pickUnusedColor(usedColorIds: FolderColorId[]): FolderColorId {
   return best;
 }
 
+/**
+ * 風船の表示色を決める。
+ * タスクに個別色(colorId)が指定されていれば、期限超過でも必ずその色を使う
+ * (ユーザーが選んだ色を尊重する)。個別色が未指定(自動)のときのみ、期限超過で
+ * 警告色(赤)、それ以外はフォルダ色を使う。
+ */
+export function resolveBalloonColor(
+  colorId: FolderColorId | null,
+  folderColorId: FolderColorId | null,
+  overdue: boolean,
+): string {
+  if (colorId) return colorHex(colorId);
+  if (overdue) return WARNING_COLOR;
+  return folderColorId ? colorHex(folderColorId) : UNFILED_COLOR;
+}
+
 /** 背景色とのコントラストに応じて白または濃色の文字色を返す */
 export function textColorFor(bgHex: string): string {
   const r = parseInt(bgHex.slice(1, 3), 16) / 255;

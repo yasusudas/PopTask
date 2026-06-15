@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Folder, Task } from "../types";
-import { colorHex, textColorFor, UNFILED_COLOR, WARNING_COLOR } from "../lib/colors";
+import { colorHex, resolveBalloonColor, textColorFor, UNFILED_COLOR } from "../lib/colors";
 import { formatDue, formatOverdue, formatTimeLeft } from "../lib/time";
 import { diameterForProgress, inflationProgress } from "../lib/size";
 import { BalloonEngine, generateInitialLayout } from "../physics/engine";
@@ -150,9 +150,9 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
       const diameter = width > 0 ? diameterForProgress(eased, width) : 100;
       const folder = task.folderId ? folders.get(task.folderId) : undefined;
       const folderColor = folder ? colorHex(folder.colorId) : UNFILED_COLOR;
-      // タスク個別の色が指定されていればフォルダ色より優先する
-      const baseColor = task.colorId ? colorHex(task.colorId) : folderColor;
-      const color = overdue ? WARNING_COLOR : baseColor;
+      // 個別色が指定されていれば期限超過でも優先して反映する。
+      // 自動(未指定)のときのみ、期限超過で警告色(赤)になる。
+      const color = resolveBalloonColor(task.colorId, folder?.colorId ?? null, overdue);
       return {
         task,
         overdue,
