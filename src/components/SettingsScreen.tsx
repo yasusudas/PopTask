@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { APP_VERSION, SCHEMA_VERSION } from "../types";
+import { APP_UPDATED_AT, APP_VERSION, SCHEMA_VERSION } from "../types";
 import {
   deleteAllData,
   exportBackup,
@@ -165,6 +165,10 @@ export function SettingsScreen({ notificationsEnabled, onNotify }: SettingsScree
         <div className="settings-row">
           <span>アプリバージョン</span>
           <span>{APP_VERSION}</span>
+        </div>
+        <div className="settings-row">
+          <span>更新日時</span>
+          <span>{APP_UPDATED_AT}</span>
         </div>
         <div className="settings-row">
           <span>データスキーマバージョン</span>

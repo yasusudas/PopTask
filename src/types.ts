@@ -57,7 +57,8 @@ export type MainTab = "active" | "completed" | "trash";
 export type FolderFilter = "all" | "none" | string;
 
 export const SCHEMA_VERSION = 1;
-export const APP_VERSION = "Ver. 1.7";
+export const APP_VERSION = "Ver. 1.8";
+export const APP_UPDATED_AT = "2026/06/16 01:05";
 export const TRASH_RETENTION_DAYS = 30;
 export const NOTIFICATION_OFFSETS: NotificationOffsetMinutes[] = [2880, 1440, 360, 60, 0];
 export const INFLATION_OPTIONS: { value: InflationWindowHours; label: string }[] = [

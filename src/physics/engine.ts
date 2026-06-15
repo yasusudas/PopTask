@@ -1,6 +1,6 @@
 /**
- * 風船用の軽量2D物理エンジン。
- * 円形ボディの浮遊・衝突・初期位置への復元・ドラッグ・慣性を扱う。
+ * ヘリウム風船用の軽量2D物理エンジン。
+ * 鉛直方向の浮力を主とし、水平方向はごく弱い揺らぎに留める。
  */
 
 export interface BalloonBody {
@@ -12,22 +12,21 @@ export interface BalloonBody {
   r: number;
   homeX: number;
   homeY: number;
-  phase: number; // 浮遊アニメーションの位相
+  phase: number;
   dragging: boolean;
 }
 
-const FLOAT_FORCE = 12; // px/s^2
-const HOME_SPRING = 1.2; // 初期位置への復元力
-const DAMPING = 1.4; // 速度減衰
-const COLLISION_GAP = 4; // 風船同士の最小間隔
-const MAX_SPEED = 900;
-const EDGE_PAD = 6;
-// 衝突反発などで生じる速度の上限 (px/s)。重なり解消時の暴走を防ぎ緩やかに収める
-const MAX_SETTLE_SPEED = 260;
-// 上向きの浮力 (px/s^2)。ヘリウム風船として常にわずかに上昇しようとする
-const BUOYANCY = 18;
-// 指を離した瞬間に与える上向きの初速 (px/s)。どの方向にドラッグしても上へ浮かせる
-const RELEASE_RISE = 70;
+const FLOAT_FORCE_X = 4;
+const FLOAT_FORCE_Y = 5;
+const HOME_SPRING_X = 0.12;
+const HOME_SPRING_Y = 0.65;
+const DAMPING = 2.1;
+export const COLLISION_GAP = 4;
+export const EDGE_PAD = 6;
+const MAX_HORIZ_SPEED = 42;
+const MAX_VERT_SPEED = 160;
+const BUOYANCY = 20;
+const RELEASE_RISE = 55;
 
 export class BalloonEngine {
   bodies = new Map<string, BalloonBody>();
@@ -41,12 +40,11 @@ export class BalloonEngine {
     this.height = height;
   }
 
+  /** 新規ボディのみ home を設定する。既存ボディは半径だけ更新し位置・home は保持する。 */
   upsert(id: string, r: number, homeX: number, homeY: number): BalloonBody {
     const existing = this.bodies.get(id);
     if (existing) {
       existing.r = r;
-      existing.homeX = homeX;
-      existing.homeY = homeY;
       return existing;
     }
     const body: BalloonBody = {
@@ -63,6 +61,34 @@ export class BalloonEngine {
     };
     this.bodies.set(id, body);
     return body;
+  }
+
+  /** 幅変更など、全風船を初期グリッドへ戻すときだけ使う。 */
+  resetLayout(placed: PlacedCircle[]) {
+    const ids = new Set(placed.map((p) => p.id));
+    this.retainOnly(ids);
+    for (const p of placed) {
+      const existing = this.bodies.get(p.id);
+      if (existing) {
+        existing.r = p.r;
+        existing.homeX = p.x;
+        existing.homeY = p.y;
+        existing.x = p.x;
+        existing.y = p.y;
+        existing.vx = 0;
+        existing.vy = 0;
+      } else {
+        this.upsert(p.id, p.r, p.x, p.y);
+      }
+    }
+  }
+
+  contentBottom(): number {
+    let bottom = 0;
+    for (const b of this.bodies.values()) {
+      bottom = Math.max(bottom, b.y + b.r);
+    }
+    return bottom;
   }
 
   remove(id: string) {
@@ -94,9 +120,6 @@ export class BalloonEngine {
     const b = this.bodies.get(id);
     if (!b) return;
     b.dragging = false;
-    // ヘリウム風船として、ドラッグ方向によらず概ね鉛直上方向へ浮かせる。
-    // 水平方向のアンカー(homeX)を離した位置へ移し、横方向の慣性・復元を消すことで
-    // 「引っ張られた方向へ流れていく」挙動をなくし、その場から真上へ浮上させる。
     const minX = b.r + EDGE_PAD;
     const maxX = Math.max(minX, this.width - b.r - EDGE_PAD);
     b.homeX = clamp(b.x, minX, maxX);
@@ -111,27 +134,22 @@ export class BalloonEngine {
     for (const b of bodies) {
       if (b.dragging) continue;
       if (!this.reducedMotion) {
-        // 基本位置の周囲での弱い浮遊
-        b.vx += Math.cos(this.time * 0.9 + b.phase) * FLOAT_FORCE * dt;
-        b.vy += Math.sin(this.time * 0.7 + b.phase * 1.3) * FLOAT_FORCE * dt;
+        b.vx += Math.cos(this.time * 0.85 + b.phase) * FLOAT_FORCE_X * dt;
+        b.vy += Math.sin(this.time * 0.65 + b.phase * 1.2) * FLOAT_FORCE_Y * dt;
       }
-      // 初期位置への弱い復元力
-      b.vx += (b.homeX - b.x) * HOME_SPRING * dt;
-      b.vy += (b.homeY - b.y) * HOME_SPRING * dt;
-      // 上向きの浮力 (ヘリウム風船は常に少し上へ向かう)
+      b.vx += (b.homeX - b.x) * HOME_SPRING_X * dt;
+      b.vy += (b.homeY - b.y) * HOME_SPRING_Y * dt;
       b.vy -= BUOYANCY * dt;
-      // 減衰
       const decay = Math.max(0, 1 - DAMPING * dt);
       b.vx *= decay;
       b.vy *= decay;
-      b.vx = clamp(b.vx, -MAX_SPEED, MAX_SPEED);
-      b.vy = clamp(b.vy, -MAX_SPEED, MAX_SPEED);
+      b.vx = clamp(b.vx, -MAX_HORIZ_SPEED, MAX_HORIZ_SPEED);
+      b.vy = clamp(b.vy, -MAX_VERT_SPEED, MAX_VERT_SPEED);
       b.x += b.vx * dt;
       b.y += b.vy * dt;
     }
 
-    // 衝突解決 (位置補正ベース、数回反復して安定させる)
-    for (let iter = 0; iter < 3; iter++) {
+    for (let iter = 0; iter < 4; iter++) {
       for (let i = 0; i < bodies.length; i++) {
         for (let j = i + 1; j < bodies.length; j++) {
           this.resolveCollision(bodies[i], bodies[j]);
@@ -139,23 +157,30 @@ export class BalloonEngine {
       }
     }
 
-    // 衝突反発で得た速度を緩やかな上限に収める (重なり解消時の高速な吹き飛びを防ぐ)
     for (const b of bodies) {
       if (b.dragging) continue;
-      b.vx = clamp(b.vx, -MAX_SETTLE_SPEED, MAX_SETTLE_SPEED);
-      b.vy = clamp(b.vy, -MAX_SETTLE_SPEED, MAX_SETTLE_SPEED);
-    }
-
-    // 境界を貫通させない
-    for (const b of bodies) {
+      b.vx = clamp(b.vx, -MAX_HORIZ_SPEED, MAX_HORIZ_SPEED);
+      b.vy = clamp(b.vy, -MAX_VERT_SPEED, MAX_VERT_SPEED);
       const minX = b.r + EDGE_PAD;
       const maxX = this.width - b.r - EDGE_PAD;
       const minY = b.r + EDGE_PAD;
       const maxY = this.height - b.r - EDGE_PAD;
-      if (b.x < minX) { b.x = minX; b.vx = Math.abs(b.vx) * 0.5; }
-      if (b.x > maxX) { b.x = Math.max(minX, maxX); b.vx = -Math.abs(b.vx) * 0.5; }
-      if (b.y < minY) { b.y = minY; b.vy = Math.abs(b.vy) * 0.5; }
-      if (b.y > maxY) { b.y = Math.max(minY, maxY); b.vy = -Math.abs(b.vy) * 0.5; }
+      if (b.x < minX) {
+        b.x = minX;
+        b.vx = Math.abs(b.vx) * 0.08;
+      }
+      if (b.x > maxX) {
+        b.x = Math.max(minX, maxX);
+        b.vx = -Math.abs(b.vx) * 0.08;
+      }
+      if (b.y < minY) {
+        b.y = minY;
+        b.vy = Math.abs(b.vy) * 0.2;
+      }
+      if (b.y > maxY) {
+        b.y = Math.max(minY, maxY);
+        b.vy = -Math.abs(b.vy) * 0.25;
+      }
     }
   }
 
@@ -166,28 +191,26 @@ export class BalloonEngine {
     const distSq = dx * dx + dy * dy;
     if (distSq >= minDist * minDist) return;
     const dist = Math.sqrt(distSq) || 0.001;
-    const nx = dx / dist;
-    const ny = dy / dist;
+    let nx = dx / dist;
+    let ny = dy / dist;
     const overlap = minDist - dist;
 
-    // ドラッグ中のボディは動かさず、相手側を全量押し出す
     const aWeight = a.dragging ? 0 : b.dragging ? 1 : 0.5;
     const bWeight = 1 - aWeight;
+
+    // 横方向の押し出しを弱め、鉛直方向を優先してヘリウム風船らしい分離にする
+    if (Math.abs(nx) > Math.abs(ny)) {
+      nx *= 0.35;
+      ny = ny >= 0 ? 1 : -1;
+      const len = Math.hypot(nx, ny) || 1;
+      nx /= len;
+      ny /= len;
+    }
+
     a.x -= nx * overlap * aWeight;
     a.y -= ny * overlap * aWeight;
     b.x += nx * overlap * bWeight;
     b.y += ny * overlap * bWeight;
-
-    // 互いに押し合う反発速度。深い重なりでも暴走しないよう上限付きで弱める
-    const push = Math.min(overlap, 24) * 3.5;
-    if (!a.dragging) {
-      a.vx -= nx * push * bWeight;
-      a.vy -= ny * push * bWeight;
-    }
-    if (!b.dragging) {
-      b.vx += nx * push * aWeight;
-      b.vy += ny * push * aWeight;
-    }
   }
 }
 
@@ -202,10 +225,6 @@ export interface PlacedCircle {
   r: number;
 }
 
-/**
- * 衝突しない初期位置を上から下へ優先度順に生成する。
- * 返り値の requiredHeight をフィールドの高さに使う。
- */
 export function generateInitialLayout(
   items: { id: string; r: number }[],
   fieldWidth: number,
@@ -216,29 +235,36 @@ export function generateInitialLayout(
   let maxBottom = 0;
 
   for (const item of items) {
-    const r = item.r;
-    const minX = r + EDGE_PAD;
-    const maxX = Math.max(minX, fieldWidth - r - EDGE_PAD);
-    let found = false;
-    for (let y = r + EDGE_PAD + 8; !found; y += 14) {
-      // 同じ高さでは横位置をジッター付きで数候補試す
-      const slots = 7;
-      const order = shuffled(slots);
-      for (const s of order) {
-        const x = minX + ((maxX - minX) * s) / Math.max(1, slots - 1) + (Math.random() - 0.5) * 10;
-        const cx = clamp(x, minX, maxX);
-        if (placed.every((p) => (p.x - cx) ** 2 + (p.y - y) ** 2 >= (p.r + r + gap) ** 2)) {
-          placed.push({ id: item.id, x: cx, y, r });
-          maxBottom = Math.max(maxBottom, y + r);
-          found = true;
-          break;
-        }
-      }
-      if (y > 100000) break; // 安全弁
-    }
+    const pos = placeNewBalloon(item.r, fieldWidth, placed, gap);
+    if (!pos) continue;
+    placed.push({ id: item.id, x: pos.x, y: pos.y, r: item.r });
+    maxBottom = Math.max(maxBottom, pos.y + item.r);
   }
 
   return { placed, requiredHeight: Math.max(minHeight, maxBottom + EDGE_PAD + 16) };
+}
+
+/** 既存風船を動かさず、新しい風船の初期位置だけを探す。 */
+export function placeNewBalloon(
+  r: number,
+  fieldWidth: number,
+  existing: { x: number; y: number; r: number }[],
+  gap = COLLISION_GAP + 6,
+): { x: number; y: number } | null {
+  const minX = r + EDGE_PAD;
+  const maxX = Math.max(minX, fieldWidth - r - EDGE_PAD);
+  for (let y = r + EDGE_PAD + 8; y < 100000; y += 14) {
+    const slots = 7;
+    const order = shuffled(slots);
+    for (const s of order) {
+      const x = minX + ((maxX - minX) * s) / Math.max(1, slots - 1) + (Math.random() - 0.5) * 10;
+      const cx = clamp(x, minX, maxX);
+      if (existing.every((p) => (p.x - cx) ** 2 + (p.y - y) ** 2 >= (p.r + r + gap) ** 2)) {
+        return { x: cx, y };
+      }
+    }
+  }
+  return null;
 }
 
 function shuffled(n: number): number[] {

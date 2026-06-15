@@ -3,7 +3,7 @@ import type { Folder, Task } from "../types";
 import { colorHex, textColorFor, UNFILED_COLOR, WARNING_COLOR } from "../lib/colors";
 import { formatDue, formatOverdue, formatTimeLeft } from "../lib/time";
 import { diameterForProgress, inflationProgress } from "../lib/size";
-import { BalloonEngine, generateInitialLayout } from "../physics/engine";
+import { BalloonEngine, generateInitialLayout, placeNewBalloon, EDGE_PAD } from "../physics/engine";
 
 const TAP_THRESHOLD_PX = 8;
 const POP_DURATION_MS = 420;
@@ -52,6 +52,8 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
   const [fieldHeight, setFieldHeight] = useState(0);
   const [bursts, setBursts] = useState<ShardBurst[]>([]);
   const seenPopping = useRef(new Set<string>());
+  const syncedWidthRef = useRef(0);
+  const syncedIdsRef = useRef<Set<string>>(new Set());
 
   // 期限変更アニメーション: id ごとに「変更前の期限」から実効期限を補間する
   const animsRef = useRef(new Map<string, { fromDueMs: number; startPerf: number }>());
@@ -173,26 +175,51 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, folders, now, width, frame]);
 
-  // 配置の再生成は構成 (idの集合) が変わった時のみ。期限変更による並び替えで
-  // 全風船が初期位置へ瞬間移動しないよう、順序非依存のキーにする。
-  const idsKey = useMemo(() => tasks.map((t) => t.id).sort().join("|"), [tasks]);
-
-  // 初期配置の生成 (タスク構成や幅が変わった時のみ)
+  // 配置: 幅変更時のみ全再配置。風船の増減では既存の home/位置を保持する。
   useEffect(() => {
     if (width <= 0) return;
     const minHeight = wrapRef.current?.clientHeight ?? 400;
     const items = balloons.map((b) => ({ id: b.task.id, r: b.diameter / 2 }));
-    const { placed, requiredHeight } = generateInitialLayout(items, width, minHeight);
+    const currentIds = new Set(items.map((i) => i.id));
+
+    if (syncedWidthRef.current !== width) {
+      const { placed, requiredHeight } = generateInitialLayout(items, width, minHeight);
+      setFieldHeight(requiredHeight);
+      engine.setBounds(width, requiredHeight);
+      engine.resetLayout(placed);
+      syncedWidthRef.current = width;
+      syncedIdsRef.current = currentIds;
+      return;
+    }
+
+    for (const id of syncedIdsRef.current) {
+      if (!currentIds.has(id)) engine.remove(id);
+    }
+
+    const obstacles = [...engine.bodies.values()].map((b) => ({ x: b.x, y: b.y, r: b.r }));
+    for (const item of items) {
+      if (!syncedIdsRef.current.has(item.id)) {
+        const pos = placeNewBalloon(item.r, width, obstacles);
+        if (pos) {
+          engine.upsert(item.id, item.r, pos.x, pos.y);
+          obstacles.push({ x: pos.x, y: pos.y, r: item.r });
+        }
+      } else {
+        const body = engine.bodies.get(item.id);
+        if (body) body.r = item.r;
+      }
+    }
+
+    engine.retainOnly(currentIds);
+    syncedIdsRef.current = currentIds;
+
+    const requiredHeight = Math.max(minHeight, engine.contentBottom() + EDGE_PAD + 16);
     setFieldHeight(requiredHeight);
     engine.setBounds(width, requiredHeight);
-    engine.retainOnly(new Set(items.map((i) => i.id)));
-    for (const p of placed) {
-      engine.upsert(p.id, p.r, p.x, p.y);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idsKey, width, engine]);
+  }, [balloons, width, engine]);
 
-  // 時間経過によるサイズ変化を物理ボディへ反映
+  // 時間経過によるサイズ変化を物理ボディへ反映 (home は変えない)
   useEffect(() => {
     for (const b of balloons) {
       const body = engine.bodies.get(b.task.id);
@@ -230,6 +257,8 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
       if (!body || !balloon) continue;
       const burst: ShardBurst = { key: `${id}:${Date.now()}`, x: body.x, y: body.y, color: balloon.color };
       setBursts((prev) => [...prev, burst]);
+      engine.remove(id);
+      elRefs.current.delete(id);
       window.setTimeout(() => {
         setBursts((prev) => prev.filter((s) => s.key !== burst.key));
         seenPopping.current.delete(id);

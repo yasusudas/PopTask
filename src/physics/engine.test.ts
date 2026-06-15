@@ -16,7 +16,7 @@ describe("BalloonEngine ドラッグ解放", () => {
     e.startDrag("a");
     e.dragTo("a", 600, 300);
     e.endDrag("a");
-    expect(Math.abs(b.vx)).toBeLessThanOrEqual(200);
+    expect(Math.abs(b.vx)).toBeLessThanOrEqual(10);
   });
 
   it("解放後に画面を横切るような長距離の水平移動をしない", () => {
@@ -31,24 +31,20 @@ describe("BalloonEngine ドラッグ解放", () => {
       e.step(1 / 60);
       maxExcursion = Math.max(maxExcursion, Math.abs(b.x - startX));
     }
-    expect(maxExcursion).toBeLessThan(120);
+    expect(maxExcursion).toBeLessThan(80);
   });
 
   it("どの方向にドラッグして離しても概ね鉛直上方向へ浮上する", () => {
     const e = makeEngine();
     const b = e.upsert("a", 30, 400, 200);
     e.startDrag("a");
-    // 右下方向へドラッグ
     e.dragTo("a", 560, 430);
     const releaseX = b.x;
     const releaseY = b.y;
     e.endDrag("a");
     for (let i = 0; i < 150; i++) e.step(1 / 60);
-    // 上方向へ移動している
-    expect(releaseY - b.y).toBeGreaterThan(80);
-    // ドラッグした横方向へ流れていかない (水平移動はごくわずか)
-    expect(Math.abs(b.x - releaseX)).toBeLessThan(40);
-    // 鉛直成分が水平成分を大きく上回る
+    expect(releaseY - b.y).toBeGreaterThan(60);
+    expect(Math.abs(b.x - releaseX)).toBeLessThan(35);
     expect(releaseY - b.y).toBeGreaterThan(Math.abs(b.x - releaseX) * 3);
   });
 });
@@ -56,7 +52,6 @@ describe("BalloonEngine ドラッグ解放", () => {
 describe("BalloonEngine 衝突", () => {
   it("重なった状態の風船を解放しても高速で吹き飛ばない", () => {
     const e = makeEngine();
-    // 互いの定位置 (home) は離れているが、片方を相手の上に落とした状態を再現する
     const a = e.upsert("a", 25, 300, 300);
     const b = e.upsert("b", 25, 360, 300);
     b.x = 315;
@@ -66,8 +61,48 @@ describe("BalloonEngine 衝突", () => {
       e.step(1 / 60);
       maxSpeed = Math.max(maxSpeed, Math.hypot(a.vx, a.vy), Math.hypot(b.vx, b.vy));
     }
-    expect(maxSpeed).toBeLessThanOrEqual(100);
-    // 重なりは解消している
+    expect(maxSpeed).toBeLessThanOrEqual(80);
     expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(53);
+  });
+});
+
+describe("BalloonEngine 削除・upsert", () => {
+  it("既存ボディの upsert は home を上書きしない", () => {
+    const e = makeEngine();
+    const a = e.upsert("a", 30, 200, 300);
+    a.x = 210;
+    a.y = 310;
+    e.upsert("a", 35, 999, 999);
+    expect(a.homeX).toBe(200);
+    expect(a.homeY).toBe(300);
+    expect(a.x).toBe(210);
+  });
+
+  it("隣接風船を削除しても残りの home 位置は変わらない", () => {
+    const e = makeEngine();
+    const a = e.upsert("a", 30, 200, 300);
+    e.upsert("b", 30, 400, 300);
+    const homeAX = a.homeX;
+    const homeAY = a.homeY;
+    e.remove("b");
+    expect(a.homeX).toBe(homeAX);
+    expect(a.homeY).toBe(homeAY);
+  });
+
+  it("風船削除後も残りが横方向へ高速移動しない", () => {
+    const e = makeEngine();
+    const a = e.upsert("a", 30, 200, 300);
+    e.upsert("b", 30, 260, 300);
+    const startX = a.x;
+    e.remove("b");
+    let maxHorizSpeed = 0;
+    let maxExcursion = 0;
+    for (let i = 0; i < 120; i++) {
+      e.step(1 / 60);
+      maxHorizSpeed = Math.max(maxHorizSpeed, Math.abs(a.vx));
+      maxExcursion = Math.max(maxExcursion, Math.abs(a.x - startX));
+    }
+    expect(maxHorizSpeed).toBeLessThan(45);
+    expect(maxExcursion).toBeLessThan(35);
   });
 });
