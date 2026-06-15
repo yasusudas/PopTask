@@ -15,6 +15,16 @@ export class PopTaskDB extends Dexie {
       notificationReceipts: "id, taskId",
       settings: "id",
     });
+    this.version(2).stores({
+      tasks: "id, status, folderId, dueAt, deletedAt, updatedAt",
+      folders: "id, name, createdAt",
+      notificationReceipts: "id, taskId",
+      settings: "id",
+    }).upgrade(async (tx) => {
+      await tx.table("tasks").toCollection().modify((task) => {
+        if (task.colorId === undefined) task.colorId = null;
+      });
+    });
   }
 }
 

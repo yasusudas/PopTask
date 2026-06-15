@@ -111,7 +111,7 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
         <span id="color-label" style={{ fontSize: 13, fontWeight: 700, color: "var(--text-sub)" }}>
           風船の色
         </span>
-        <div className="color-swatches" role="group" aria-labelledby="color-label">
+        <div className="color-swatches task-color-swatches" role="group" aria-labelledby="color-label">
           <button
             type="button"
             className={`color-swatch color-swatch-default${colorId === null ? " is-selected" : ""}`}

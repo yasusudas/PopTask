@@ -49,7 +49,14 @@ export const TaskRepository = {
     if (patch.dueAt && patch.dueAt !== prev.dueAt) {
       await db.notificationReceipts.where("taskId").equals(id).delete();
     }
-    await db.tasks.update(id, { ...patch, updatedAt: nowIso() });
+    const next: Task = {
+      ...prev,
+      ...patch,
+      title: patch.title !== undefined ? patch.title.trim() : prev.title,
+      colorId: patch.colorId !== undefined ? patch.colorId : (prev.colorId ?? null),
+      updatedAt: nowIso(),
+    };
+    await db.tasks.put(next);
   },
 
   async complete(id: string): Promise<void> {

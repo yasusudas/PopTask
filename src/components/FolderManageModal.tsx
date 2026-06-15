@@ -110,7 +110,7 @@ export function FolderManageModal({ folders, onClose, onError }: FolderManageMod
             <span id="color-label" style={{ fontSize: 13, fontWeight: 700, color: "var(--text-sub)" }}>
               色
             </span>
-            <div className="color-swatches" role="group" aria-labelledby="color-label">
+            <div className="color-swatches folder-color-swatches" role="group" aria-labelledby="color-label">
               {FOLDER_COLORS.map((c) => (
                 <button
                   key={c.id}

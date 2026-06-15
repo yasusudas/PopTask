@@ -22,6 +22,7 @@ export function TaskDetailSheet({ task, folders, onComplete, onSave, onDelete, o
         </button>
       </div>
       <TaskForm
+        key={task.id}
         folders={folders}
         initial={{
           title: task.title,
