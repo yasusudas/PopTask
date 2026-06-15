@@ -21,10 +21,12 @@ interface TaskFormProps {
   submitLabel: string;
   /** タスク作成時のみ期限が未来であることを必須にする */
   requireFutureDue?: boolean;
+  /** 期限超過中: カラーピッカーを選択不可にする */
+  colorDisabled?: boolean;
   onSubmit: (values: TaskFormValues) => void;
 }
 
-export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requireFutureDue, onSubmit }: TaskFormProps) {
+export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requireFutureDue, colorDisabled, onSubmit }: TaskFormProps) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [dueLocal, setDueLocal] = useState(initial ? isoToLocalInput(initial.dueAt) : "");
   const [folderId, setFolderId] = useState<string | null>(initial?.folderId ?? defaultFolderId ?? null);
@@ -110,14 +112,25 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
       <div className="field-group">
         <span id="color-label" style={{ fontSize: 13, fontWeight: 700, color: "var(--text-sub)" }}>
           風船の色
+          {colorDisabled && (
+            <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: "var(--danger, #DC2626)" }}>
+              期限超過中は警告色固定
+            </span>
+          )}
         </span>
-        <div className="color-swatches task-color-swatches" role="group" aria-labelledby="color-label">
+        <div
+          className={`color-swatches task-color-swatches${colorDisabled ? " is-disabled" : ""}`}
+          role="group"
+          aria-labelledby="color-label"
+          aria-disabled={colorDisabled}
+        >
           <button
             type="button"
             className={`color-swatch color-swatch-default${colorId === null ? " is-selected" : ""}`}
             aria-pressed={colorId === null}
             aria-label="フォルダの色に従う"
             title="フォルダの色に従う"
+            disabled={colorDisabled}
             onClick={() => setColorId(null)}
           >
             自動
@@ -131,6 +144,7 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
               aria-pressed={colorId === c.id}
               aria-label={c.label}
               title={c.label}
+              disabled={colorDisabled}
               onClick={() => setColorId(c.id)}
             />
           ))}

@@ -859,17 +859,16 @@ select {
 }
 
 .task-color-swatches {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
   gap: 6px;
 }
 
 .task-color-swatches .color-swatch {
-  width: 28px;
-  height: 28px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
   min-height: unset;
-  aspect-ratio: unset;
-  flex: 0 0 auto;
   border-radius: 8px;
   border: 2px solid var(--border);
   padding: 0;
@@ -877,7 +876,7 @@ select {
   position: relative;
 }
 
-.task-color-swatches .color-swatch:hover {
+.task-color-swatches .color-swatch:hover:not(:disabled) {
   transform: scale(1.08);
 }
 
@@ -898,8 +897,9 @@ select {
 }
 
 .task-color-swatches .color-swatch-default {
-  width: 28px;
-  height: 28px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
   min-width: unset;
   border-radius: 8px;
   background: var(--surface);
@@ -912,6 +912,15 @@ select {
 
 .task-color-swatches .color-swatch-default.is-selected::after {
   content: none;
+}
+
+.task-color-swatches.is-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.task-color-swatches .color-swatch:disabled {
+  cursor: not-allowed;
 }
 
 /* ---------- ボタン ---------- */

@@ -13,6 +13,8 @@ interface TaskDetailSheetProps {
 }
 
 export function TaskDetailSheet({ task, folders, onComplete, onSave, onDelete, onClose }: TaskDetailSheetProps) {
+  const isOverdue = new Date(task.dueAt).getTime() <= Date.now();
+
   return (
     <ModalSheet title="タスクの詳細" onClose={onClose}>
       <div style={{ padding: "0 16px" }}>
@@ -33,6 +35,7 @@ export function TaskDetailSheet({ task, folders, onComplete, onSave, onDelete, o
           memo: task.memo,
         }}
         submitLabel="変更を保存"
+        colorDisabled={isOverdue}
         onSubmit={onSave}
       />
       <button type="button" className="button-text-danger" onClick={onDelete} style={{ marginBottom: 12 }}>
