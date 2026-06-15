@@ -121,7 +121,7 @@ export function FolderManageModal({ folders, onClose, onError }: FolderManageMod
                   aria-label={c.label}
                   onClick={() => setEditor({ ...editor, colorId: c.id })}
                 >
-                  {editor.colorId === c.id && <CheckIcon size={18} />}
+                  {editor.colorId === c.id && <CheckIcon size={14} />}
                 </button>
               ))}
             </div>
