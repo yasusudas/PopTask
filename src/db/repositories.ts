@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { uuid } from "../lib/id";
 import { nowIso } from "../lib/time";
+import { syncBridge } from "../sync/syncBridge";
 import {
   SCHEMA_VERSION,
   TRASH_RETENTION_DAYS,
@@ -39,6 +40,7 @@ export const TaskRepository = {
       updatedAt: now,
     };
     await db.tasks.add(task);
+    void syncBridge.onTaskCreated(task);
     return task;
   },
 
@@ -57,16 +59,21 @@ export const TaskRepository = {
       updatedAt: nowIso(),
     };
     await db.tasks.put(next);
+    void syncBridge.onTaskUpdated(next);
   },
 
   async complete(id: string): Promise<void> {
     const now = nowIso();
     await db.tasks.update(id, { status: "completed", completedAt: now, updatedAt: now });
+    const task = await db.tasks.get(id);
+    if (task) void syncBridge.onTaskUpdated(task);
   },
 
   /** 完了の取り消し・完了一覧から未完了へ戻す */
   async reactivate(id: string): Promise<void> {
     await db.tasks.update(id, { status: "active", completedAt: null, updatedAt: nowIso() });
+    const task = await db.tasks.get(id);
+    if (task) void syncBridge.onTaskUpdated(task);
   },
 
   async moveToTrash(id: string): Promise<void> {
@@ -79,6 +86,8 @@ export const TaskRepository = {
       deletedAt: now,
       updatedAt: now,
     });
+    const next = await db.tasks.get(id);
+    if (next) void syncBridge.onTaskUpdated(next);
   },
 
   /** ゴミ箱から削除前の状態へ復元する */
@@ -92,6 +101,8 @@ export const TaskRepository = {
       deletedAt: null,
       updatedAt: nowIso(),
     });
+    const next = await db.tasks.get(id);
+    if (next) void syncBridge.onTaskUpdated(next);
   },
 
   async deletePermanently(id: string): Promise<void> {
@@ -99,6 +110,7 @@ export const TaskRepository = {
       await db.tasks.delete(id);
       await db.notificationReceipts.where("taskId").equals(id).delete();
     });
+    void syncBridge.onTaskDeleted(id);
   },
 
   /** deletedAt + 30日 を過ぎたゴミ箱タスクを完全削除する */
@@ -123,6 +135,7 @@ export const TaskRepository = {
         await db.notificationReceipts.where("taskId").equals(t.id).delete();
       }
     });
+    await syncBridge.onBulkLocalChange();
   },
 };
 
@@ -131,11 +144,14 @@ export const FolderRepository = {
     const now = nowIso();
     const folder: Folder = { id: uuid(), name: name.trim(), colorId, createdAt: now, updatedAt: now };
     await db.folders.add(folder);
+    void syncBridge.onFolderCreated(folder);
     return folder;
   },
 
   async update(id: string, patch: { name?: string; colorId?: FolderColorId }): Promise<void> {
     await db.folders.update(id, { ...patch, updatedAt: nowIso() });
+    const folder = await db.folders.get(id);
+    if (folder) void syncBridge.onFolderUpdated(folder);
   },
 
   /** フォルダ削除時、所属する全状態のタスクを未分類へ移す */
@@ -144,6 +160,8 @@ export const FolderRepository = {
       await db.tasks.where("folderId").equals(id).modify({ folderId: null, updatedAt: nowIso() });
       await db.folders.delete(id);
     });
+    void syncBridge.onFolderDeleted(id);
+    void syncBridge.onBulkLocalChange();
   },
 
   /** 名前の重複チェック (英字の大文字・小文字を区別しない) */
@@ -172,8 +190,10 @@ export const SettingsRepository = {
   },
 
   async update(patch: Partial<Omit<Settings, "id" | "schemaVersion" | "createdAt">>): Promise<void> {
-    await SettingsRepository.get();
-    await db.settings.update("app", { ...patch, updatedAt: nowIso() });
+    const current = await SettingsRepository.get();
+    const next: Settings = { ...current, ...patch, updatedAt: nowIso() };
+    await db.settings.put(next);
+    void syncBridge.onSettingsUpdated(next);
   },
 };
 

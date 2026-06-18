@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { registerSW } from "virtual:pwa-register";
 import { Analytics } from "@vercel/analytics/react";
+import { useAuth } from "./auth/AuthContext";
+import { useSync } from "./sync/SyncContext";
 import { db } from "./db/db";
 import { repairIntegrity, SettingsRepository, TaskRepository } from "./db/repositories";
 import { checkAndNotify } from "./lib/notifications";
@@ -17,6 +19,7 @@ import { FolderFilterBar } from "./components/FolderFilterBar";
 import { FolderManageModal } from "./components/FolderManageModal";
 import { SearchBar, SearchInput } from "./components/SearchBar";
 import { SettingsScreen } from "./components/SettingsScreen";
+import { AuthScreen } from "./components/AuthScreen";
 import { Sidebar } from "./components/Sidebar";
 import { TaskCreateModal } from "./components/TaskCreateModal";
 import { TaskDetailSheet } from "./components/TaskDetailSheet";
@@ -48,6 +51,8 @@ const TAB_TITLES: Record<MainTab, string> = {
 };
 
 export default function App() {
+  const { enabled: authEnabled, user, loading: authLoading } = useAuth();
+  const { ready: syncReady, syncing } = useSync();
   const [tab, setTab] = useState<MainTab>("active");
   const [folderFilter, setFolderFilter] = useState<FolderFilter>("all");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -193,6 +198,18 @@ export default function App() {
     [showToast],
   );
 
+  if (authEnabled && authLoading) {
+    return <div className="auth-loading">読み込み中...</div>;
+  }
+
+  if (authEnabled && !user) {
+    return <AuthScreen />;
+  }
+
+  if (authEnabled && (!syncReady || syncing)) {
+    return <div className="auth-loading">データを同期しています...</div>;
+  }
+
   const createTask = async (values: TaskFormValues) => {
     try {
       await TaskRepository.create(values);
@@ -306,6 +323,7 @@ export default function App() {
         <SettingsScreen
           notificationsEnabled={settings?.notificationsEnabled ?? false}
           onNotify={(message, error) => showToast({ message, error })}
+          userEmail={user?.email ?? null}
         />
       ) : (
         <>

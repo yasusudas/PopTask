@@ -2,6 +2,7 @@ import { db } from "../db/db";
 import { TaskRepository, SettingsRepository } from "../db/repositories";
 import { FOLDER_COLORS } from "./colors";
 import { nowIso } from "./time";
+import { syncBridge } from "../sync/syncBridge";
 import { SCHEMA_VERSION, type Folder, type Settings, type Task } from "../types";
 
 export interface BackupFile {
@@ -124,6 +125,7 @@ export async function importBackup(data: ValidatedBackup): Promise<void> {
     });
   });
   await TaskRepository.purgeExpiredTrash();
+  await syncBridge.onImportComplete();
 }
 
 export async function deleteAllData(): Promise<void> {
@@ -133,4 +135,5 @@ export async function deleteAllData(): Promise<void> {
     await db.notificationReceipts.clear();
     await db.settings.clear();
   });
+  await syncBridge.onDeleteAllLocal();
 }

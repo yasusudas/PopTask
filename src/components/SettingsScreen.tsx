@@ -13,11 +13,13 @@ import {
   type PermissionState,
 } from "../lib/notifications";
 import { SettingsRepository, TaskRepository } from "../db/repositories";
+import { useAuth } from "../auth/AuthContext";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 interface SettingsScreenProps {
   notificationsEnabled: boolean;
   onNotify: (message: string, error?: boolean) => void;
+  userEmail?: string | null;
 }
 
 const PERMISSION_LABELS: Record<PermissionState, string> = {
@@ -34,7 +36,8 @@ type PendingConfirm =
   | { kind: "emptyTrash" }
   | { kind: "deleteAll" };
 
-export function SettingsScreen({ notificationsEnabled, onNotify }: SettingsScreenProps) {
+export function SettingsScreen({ notificationsEnabled, onNotify, userEmail }: SettingsScreenProps) {
+  const { enabled: authEnabled, logout } = useAuth();
   const [permission, setPermission] = useState<PermissionState>(notificationPermission());
   const [confirm, setConfirm] = useState<PendingConfirm | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,7 +91,7 @@ export function SettingsScreen({ notificationsEnabled, onNotify }: SettingsScree
         onNotify("ゴミ箱を空にしました。");
       } else {
         await deleteAllData();
-        onNotify("すべてのローカルデータを削除しました。");
+        onNotify("すべてのデータを削除しました。");
       }
     } catch {
       onNotify("操作に失敗しました。容量不足の場合はエクスポートと不要データの削除をお試しください。", true);
@@ -98,6 +101,26 @@ export function SettingsScreen({ notificationsEnabled, onNotify }: SettingsScree
 
   return (
     <div className="settings-screen">
+      {authEnabled && userEmail && (
+        <section className="settings-section" aria-labelledby="settings-account">
+          <h3 id="settings-account">アカウント</h3>
+          <div className="settings-row">
+            <span>ログイン中</span>
+            <span className="account-email">{userEmail}</span>
+          </div>
+          <button
+            type="button"
+            className="button-secondary"
+            onClick={() => {
+              void logout().catch(() => onNotify("ログアウトに失敗しました。", true));
+            }}
+          >
+            ログアウト
+          </button>
+          <p>ログアウトするとこの端末のローカルデータは削除されます。クラウドのデータは保持されます。</p>
+        </section>
+      )}
+
       <section className="settings-section" aria-labelledby="settings-notifications">
         <h3 id="settings-notifications">通知</h3>
         <div className="settings-row">
@@ -156,7 +179,7 @@ export function SettingsScreen({ notificationsEnabled, onNotify }: SettingsScree
           ゴミ箱を空にする
         </button>
         <button type="button" className="button-danger" onClick={() => setConfirm({ kind: "deleteAll" })}>
-          すべてのローカルデータを削除
+          すべてのデータを削除
         </button>
       </section>
 
@@ -175,7 +198,9 @@ export function SettingsScreen({ notificationsEnabled, onNotify }: SettingsScree
           <span>{SCHEMA_VERSION}</span>
         </div>
         <p>
-          データはこのブラウザとこの端末にのみ保存されます。端末の変更やブラウザデータの削除に備えて、定期的なJSONエクスポートをおすすめします。
+          {authEnabled
+            ? "データはクラウドとこの端末の両方に保存されます。JSONエクスポートはバックアップ用です。"
+            : "データはこのブラウザとこの端末にのみ保存されます。端末の変更やブラウザデータの削除に備えて、定期的なJSONエクスポートをおすすめします。"}
         </p>
       </section>
 
@@ -193,7 +218,7 @@ export function SettingsScreen({ notificationsEnabled, onNotify }: SettingsScree
               ? `現在のデータをすべて置き換えて、${confirm.counts}をインポートします。この操作は元に戻せません。よろしいですか?`
               : confirm.kind === "emptyTrash"
                 ? "ゴミ箱内のタスクをすべて完全削除します。この操作は元に戻せません。よろしいですか?"
-                : "タスク・フォルダ・設定を含むすべてのローカルデータを削除します。この操作は元に戻せません。よろしいですか?"
+                : "タスク・フォルダ・設定を含むすべてのデータを削除します。この操作は元に戻せません。よろしいですか?"
           }
           confirmLabel={confirm.kind === "import" ? "置き換える" : "削除する"}
           danger

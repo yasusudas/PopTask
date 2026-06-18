@@ -1323,3 +1323,119 @@ select {
   gap: 10px;
   justify-content: flex-end;
 }
+
+/* ---------- 認証画面 ---------- */
+
+.auth-loading {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  color: var(--text-sub);
+  font-size: 15px;
+}
+
+.auth-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(56, 189, 248, 0.15), transparent 55%),
+    radial-gradient(ellipse at 80% 100%, rgba(167, 139, 250, 0.12), transparent 50%),
+    var(--bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: var(--shadow-md);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth-brand {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-brand h1 {
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.auth-brand p {
+  font-size: 13px;
+  color: var(--text-sub);
+  line-height: 1.6;
+}
+
+.auth-form h2 {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.auth-info {
+  font-size: 13px;
+  color: var(--success);
+}
+
+.auth-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.auth-links button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.auth-links button:hover {
+  text-decoration: underline;
+}
+
+.account-email {
+  font-size: 13px;
+  color: var(--text-sub);
+  word-break: break-all;
+  text-align: right;
+}
+
+.migration-dialog .migration-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.button-ghost {
+  background: none;
+  border: none;
+  color: var(--text-sub);
+  font-size: 13px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.button-ghost:hover {
+  color: var(--text);
+}

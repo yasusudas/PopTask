@@ -4,7 +4,7 @@
 
 ## Cursor Cloud specific instructions
 
-- 単一サービス (フロントエンドのみ) のアプリです。バックエンド/DB/認証はなく、データは IndexedDB に保存されます。
+- 単一サービス (フロントエンドのみ) のアプリです。認証・同期には Firebase (Auth + Firestore) を使用します。環境変数未設定時は従来どおり IndexedDB のみで動作します。
 - 標準コマンドは `package.json` の scripts と `README.md` を参照: `npm run dev` (開発サーバー)、`npm test` (Vitest)、`npm run build` (tsc 型チェック + Vite ビルド + Service Worker 生成)、`npm run test:e2e` (Playwright)。
 - 専用の lint スクリプトはありません。型チェックは `npm run build` の `tsc -b` で行われます。
 - 開発サーバーはデフォルトで `http://localhost:5173/` で起動します。Cloud VM 内のブラウザ (computerUse) からテストする場合は `npm run dev -- --host` で起動してください。

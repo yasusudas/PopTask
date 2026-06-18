@@ -18,7 +18,8 @@
 - ゴミ箱の30日自動完全削除とUndoトースト
 - ベストエフォートの段階通知 (48h / 24h / 6h / 1h / 期限ちょうど)
 - JSONバックアップのエクスポート / 全置換インポート
-- データはブラウザ内のIndexedDBにのみ保存 (アカウント・同期なし)
+- Firebase Authentication + Firestore によるアカウントログインとデバイス間同期 (環境変数設定時)
+- データはブラウザ内のIndexedDBにキャッシュされ、オンライン時にFirestoreと同期
 - マルチデバイス対応UI: スマホは下部タブ+FAB、タブレット/PCはサイドバー+トップバー
 - アイコンはすべて自作SVG (絵文字・外部アイコン素材は不使用で権利クリーン)
 - PWA: Service Workerによるアプリシェルのプリキャッシュとオフライン起動、非破壊的な更新案内
@@ -26,7 +27,7 @@
 ## 技術構成
 
 - React 19 + TypeScript + Vite
-- IndexedDB + Dexie (`TaskRepository` / `FolderRepository` / `SettingsRepository`)
+- IndexedDB + Dexie (ローカルキャッシュ) + Firebase Auth / Firestore (クラウド同期、任意)
 - PWA: vite-plugin-pwa (Workbox generateSW)。通知は対応環境でService Worker経由表示
 - 物理演算・サイズ計算・状態遷移・通知候補計算は副作用のない関数として分離
 - Vitest によるユニットテスト、Playwright によるE2Eテスト (オフライン起動含む)
@@ -35,10 +36,21 @@
 
 ```bash
 npm install
+cp .env.example .env.local   # Firebase 設定を記入 (省略時はローカルのみ動作)
 npm run dev       # 開発サーバー
 npm test          # ユニットテスト
 npm run build     # 型チェック + プロダクションビルド (Service Worker生成)
 npm run test:e2e  # E2Eテスト (ビルド + プレビューサーバーを自動起動)
 ```
+
+### Firebase セットアップ
+
+1. [Firebase Console](https://console.firebase.google.com/) でプロジェクトを作成
+2. Authentication → Sign-in method → **メール/パスワード** を有効化
+3. Firestore Database を作成 (本番モード推奨)
+4. `firestore.rules` をデプロイ (`firebase deploy --only firestore:rules`)
+5. プロジェクト設定 → ウェブアプリから設定値を `.env.local` に記入
+
+E2Eテストは `VITE_SKIP_AUTH=true` で認証をバイパスします。
 
 詳細仕様は `docs/PuffySpec.md` を参照してください。
