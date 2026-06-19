@@ -130,7 +130,7 @@ export function AuthScreen() {
                 onClick={() => void handleOAuthSignIn(signInWithGoogle)}
               >
                 <GoogleIcon size={18} />
-                Google
+                Googleで{mode === "login" ? "ログイン" : "登録"}
               </button>
               <button
                 type="button"
@@ -139,7 +139,7 @@ export function AuthScreen() {
                 onClick={() => void handleOAuthSignIn(signInWithGithub)}
               >
                 <GithubIcon size={18} />
-                GitHub
+                GitHubで{mode === "login" ? "ログイン" : "登録"}
               </button>
               <button
                 type="button"
@@ -148,7 +148,7 @@ export function AuthScreen() {
                 onClick={() => void handleOAuthSignIn(signInWithMicrosoft)}
               >
                 <MicrosoftIcon size={18} />
-                Microsoft
+                Microsoftで{mode === "login" ? "ログイン" : "登録"}
               </button>
             </div>
           </>
