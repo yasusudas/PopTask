@@ -11,7 +11,18 @@ Puffy を Vercel で公開し、ログイン・クラウド同期を有効にす
 
 [Vercel Dashboard](https://vercel.com/) → 対象プロジェクト → **Settings** → **Environment Variables**
 
-以下の **6つ** を **Production**（必要なら Preview も）に追加します。
+### 方法 A: .env をインポート（おすすめ）
+
+リポジトリの **`puffy-vercel.env`** をダウンロードし、Vercel の **Import .env** から読み込みます。
+
+1. **Add Environment Variable** 画面で **Import .env** をクリック
+2. `puffy-vercel.env` を選択（または中身を Key 欄に貼り付け）
+3. **Environment** を **Production** に設定
+4. **Save**
+
+### 方法 B: 1つずつ手入力
+
+以下の **6つ** を **Production** に追加します。
 
 | 名前 | 値 |
 |------|-----|
