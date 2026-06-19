@@ -17,7 +17,9 @@ export function createOAuthProvider(id: OAuthProviderId): AuthProvider {
   if (id === "google.com") return new GoogleAuthProvider();
   if (id === "github.com") return new GithubAuthProvider();
   const provider = new OAuthProvider("microsoft.com");
-  provider.setCustomParameters({ prompt: "select_account", tenant: "common" });
+  // common = 職場・学校 + 個人 (@outlook.com 等)。Azure 側も同じアカウント種類が必須
+  const tenant = import.meta.env.VITE_MICROSOFT_TENANT?.trim() || "common";
+  provider.setCustomParameters({ prompt: "select_account", tenant });
   return provider;
 }
 

@@ -1,6 +1,12 @@
+import type { OAuthProviderId } from "./providers";
+
 export type AuthErrorContext = "signin" | "link" | "password";
 
-export function authErrorMessage(code: string, context: AuthErrorContext = "signin"): string {
+export function authErrorMessage(
+  code: string,
+  context: AuthErrorContext = "signin",
+  providerId?: OAuthProviderId,
+): string {
   switch (code) {
     case "auth/invalid-email":
       return "メールアドレスの形式が正しくありません。";
@@ -10,8 +16,11 @@ export function authErrorMessage(code: string, context: AuthErrorContext = "sign
     case "auth/wrong-password":
       return "メールアドレスまたはパスワードが正しくありません。";
     case "auth/invalid-credential":
+      if (providerId === "microsoft.com") {
+        return microsoftAuthHint(context);
+      }
       if (context === "link") {
-        return "連携に失敗しました。Microsoft の場合は Azure で「個人用 Microsoft アカウント」が有効か確認してください。";
+        return "連携に失敗しました。別の方法で登録済みの場合は、その方法でログインしてから再度お試しください。";
       }
       if (context === "signin") {
         return "ログインに失敗しました。別の方法で登録済みの場合は、その方法でログインしてから設定で連携してください。";
@@ -40,9 +49,50 @@ export function authErrorMessage(code: string, context: AuthErrorContext = "sign
       return "このログイン方法は別のアカウントで使われています。";
     case "auth/requires-recent-login":
       return "セキュリティのため、一度ログアウトしてから再度ログインしてから連携してください。";
+    case "auth/operation-not-allowed":
+      if (providerId === "microsoft.com") {
+        return "Microsoft ログインが Firebase で有効になっていません。Firebase Console の Sign-in method で Microsoft を有効にしてください。";
+      }
+      return "このログイン方法は有効になっていません。";
     default:
       return context === "link"
         ? "連携に失敗しました。時間をおいて再度お試しください。"
         : "認証に失敗しました。時間をおいて再度お試しください。";
   }
+}
+
+function microsoftAuthHint(context: AuthErrorContext): string {
+  const base =
+    "Microsoft のログインに失敗しました。Azure Portal → アプリの登録 → 認証 で「任意の組織ディレクトリと個人用 Microsoft アカウント」を選び、Firebase Console の Microsoft 設定にアプリ ID とシークレットが正しく入っているか確認してください。";
+  if (context === "link") {
+    return `連携に失敗しました。${base}`;
+  }
+  return base;
+}
+
+/** Firebase Auth エラーからユーザー向けメッセージを生成（Microsoft の OAuth 本文も解析） */
+export function formatFirebaseAuthError(
+  err: unknown,
+  context: AuthErrorContext = "signin",
+  providerId?: OAuthProviderId,
+): string {
+  const error = err as { code?: string; message?: string };
+  const raw = (error.message ?? "").toLowerCase();
+
+  if (providerId === "microsoft.com") {
+    if (raw.includes("not enabled for consumers") || raw.includes("unauthorized_client")) {
+      return "Microsoft の個人アカウントが拒否されています。Azure のアプリ登録で「所属する組織のみ」ではなく「任意の組織ディレクトリと個人用 Microsoft アカウント」を選んで保存してください。";
+    }
+    if (raw.includes("aadsts50194")) {
+      return "Azure アプリがシングルテナントのままです。「マルチテナント + 個人用 Microsoft アカウント」に変更するか、アプリ登録を作り直してください。";
+    }
+    if (raw.includes("aadsts5000225")) {
+      return "Azure テナントが停止されています。新しいテナントでアプリ登録をやり直し、Firebase に新しい ID / シークレットを登録してください。";
+    }
+    if (raw.includes("aadsts50011") || raw.includes("redirect_uri")) {
+      return "Azure のリダイレクト URI が一致していません。Web プラットフォームに https://puffy-dc442.firebaseapp.com/__/auth/handler を追加してください。";
+    }
+  }
+
+  return authErrorMessage(error.code ?? "unknown", context, providerId);
 }
