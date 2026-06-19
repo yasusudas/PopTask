@@ -1,7 +1,64 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="28" fill="#FFFFFF"/>
-  <ellipse cx="64" cy="56" rx="34" ry="38" fill="#2563EB"/>
-  <ellipse cx="52" cy="44" rx="10" ry="13" fill="#60A5FA" opacity="0.7"/>
-  <path d="M64 94 l-5 8 h10 z" fill="#2563EB"/>
-  <path d="M64 102 q-6 8 0 14 q6 6 0 12" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-linecap="round" filter="drop-shadow(0 1px 1px rgba(15, 23, 42, 0.22))"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <radialGradient id="puffy-icon-bg" cx="50%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EFF6FF"/>
+    </radialGradient>
+    <radialGradient id="puffy-icon-body" cx="34%" cy="28%" r="68%">
+      <stop offset="0%" stop-color="#DBEAFE"/>
+      <stop offset="22%" stop-color="#60A5FA"/>
+      <stop offset="62%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </radialGradient>
+    <radialGradient id="puffy-icon-shine" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="puffy-icon-shine-soft" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E0F2FE" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#E0F2FE" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="puffy-icon-rim" x1="78" y1="30" x2="98" y2="78" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1D4ED8" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#1E3A8A" stop-opacity="0.35"/>
+    </linearGradient>
+    <filter id="puffy-icon-shadow" x="-20%" y="-10%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#1E3A8A" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="128" height="128" rx="28" fill="url(#puffy-icon-bg)"/>
+
+  <g filter="url(#puffy-icon-shadow)">
+    <path
+      fill="url(#puffy-icon-body)"
+      d="M64 18
+         C88.5 18 102.5 38.5 100.5 62
+         C98.5 82.5 84.5 94 64 94
+         C43.5 94 29.5 82.5 27.5 62
+         C25.5 38.5 39.5 18 64 18Z"
+    />
+    <path
+      fill="url(#puffy-icon-rim)"
+      d="M64 18
+         C88.5 18 102.5 38.5 100.5 62
+         C98.5 82.5 84.5 94 64 94
+         C43.5 94 29.5 82.5 27.5 62
+         C25.5 38.5 39.5 18 64 18Z"
+    />
+    <ellipse cx="49" cy="40" rx="14" ry="17" fill="url(#puffy-icon-shine)"/>
+    <ellipse cx="72" cy="52" rx="7" ry="9" fill="url(#puffy-icon-shine-soft)"/>
+    <path
+      fill="#1D4ED8"
+      d="M64 94 L57.2 105.2 C56.2 106.8 57.3 108.8 59.2 108.8 H68.8 C70.7 108.8 71.8 106.8 70.8 105.2 Z"
+    />
+    <path
+      stroke="#64748B"
+      stroke-width="2.2"
+      stroke-linecap="round"
+      fill="none"
+      d="M64 108.8 C58.5 114.5 60.5 120.5 64 124.5 C67.5 120.5 69.5 114.5 64 108.8"
+    />
+  </g>
 </svg>

@@ -1,15 +1,74 @@
+import { useId } from "react";
+
 interface IconProps {
   size?: number;
 }
 
-/** Puffyロゴ (自作SVG・権利クリーン) */
+/** ヘッダー・タイトル用の高品質風船ロゴ (アプリアイコンとは別デザイン) */
 export function BalloonLogo({ size = 26 }: IconProps) {
+  const uid = useId().replace(/:/g, "");
+  const body = `bl-body-${uid}`;
+  const shine = `bl-shine-${uid}`;
+  const blush = `bl-blush-${uid}`;
+  const rim = `bl-rim-${uid}`;
+
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <ellipse cx="16" cy="13" rx="9.5" ry="11" fill="#2563EB" />
-      <ellipse cx="12.5" cy="9.5" rx="3" ry="4" fill="#93C5FD" opacity="0.85" />
-      <path d="M16 24.5l-1.7 2.8h3.4z" fill="#2563EB" />
-      <path d="M16 27.5q-2 2.4 0 4.5" stroke="#94A3B8" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <defs>
+        <radialGradient id={body} cx="32%" cy="26%" r="72%">
+          <stop offset="0%" stopColor="#BFDBFE" />
+          <stop offset="28%" stopColor="#4F8FF7" />
+          <stop offset="68%" stopColor="#2563EB" />
+          <stop offset="100%" stopColor="#1E3A8A" />
+        </radialGradient>
+        <radialGradient id={shine} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.92" />
+          <stop offset="60%" stopColor="#FFFFFF" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={blush} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#93C5FD" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="#93C5FD" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={rim} x1="26" y1="8" x2="34" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#1D4ED8" stopOpacity="0" />
+          <stop offset="100%" stopColor="#172554" stopOpacity="0.28" />
+        </linearGradient>
+      </defs>
+
+      <g transform="rotate(-7 20 18)">
+        <path
+          fill={`url(#${body})`}
+          d="M20 5.5
+             C27.8 5.5 32.8 11.2 32.2 17.8
+             C31.6 24.2 27.2 28.8 20 28.8
+             C12.8 28.8 8.4 24.2 7.8 17.8
+             C7.2 11.2 12.2 5.5 20 5.5Z"
+        />
+        <path
+          fill={`url(#${rim})`}
+          d="M20 5.5
+             C27.8 5.5 32.8 11.2 32.2 17.8
+             C31.6 24.2 27.2 28.8 20 28.8
+             C12.8 28.8 8.4 24.2 7.8 17.8
+             C7.2 11.2 12.2 5.5 20 5.5Z"
+        />
+        <ellipse cx="14.8" cy="12.2" rx="5.2" ry="6.4" fill={`url(#${shine})`} />
+        <ellipse cx="23.8" cy="18.6" rx="2.8" ry="3.4" fill={`url(#${blush})`} />
+        <circle cx="26.6" cy="11.4" r="1.1" fill="#FFFFFF" opacity="0.88" />
+        <path
+          fill="#1D4ED8"
+          d="M20 28.8 L17.1 32.8 C16.5 33.7 17.1 34.8 18.2 34.8 H21.8 C22.9 34.8 23.5 33.7 22.9 32.8 Z"
+        />
+      </g>
+
+      <path
+        d="M20 34.8 C17.2 36.8 18.2 38.6 20 39.8 C21.8 38.6 22.8 36.8 20 34.8"
+        stroke="#94A3B8"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+        fill="none"
+      />
     </svg>
   );
 }
