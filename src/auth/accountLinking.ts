@@ -12,7 +12,7 @@ import {
   type AuthProvider,
   type User,
 } from "firebase/auth";
-import { authErrorMessage } from "./authErrors";
+import { authErrorMessage, formatFirebaseAuthError } from "./authErrors";
 import {
   createOAuthProvider,
   isOAuthProviderId,
@@ -44,10 +44,28 @@ export function getLinkedProviderIds(user: User | null): string[] {
   return user.providerData.map((p) => p.providerId).filter(Boolean);
 }
 
-export function credentialFromAuthError(error: unknown): AuthCredential | null {
+export function credentialFromAuthError(
+  error: unknown,
+  providerId?: OAuthProviderId,
+): AuthCredential | null {
   const code = (error as { code?: string }).code;
   if (code !== "auth/account-exists-with-different-credential") {
     return null;
+  }
+  if (providerId === "microsoft.com") {
+    return OAuthProvider.credentialFromError(
+      error as Parameters<typeof OAuthProvider.credentialFromError>[0],
+    );
+  }
+  if (providerId === "google.com") {
+    return GoogleAuthProvider.credentialFromError(
+      error as Parameters<typeof GoogleAuthProvider.credentialFromError>[0],
+    );
+  }
+  if (providerId === "github.com") {
+    return GithubAuthProvider.credentialFromError(
+      error as Parameters<typeof GithubAuthProvider.credentialFromError>[0],
+    );
   }
   return (
     GoogleAuthProvider.credentialFromError(error as Parameters<typeof GoogleAuthProvider.credentialFromError>[0]) ??
@@ -66,7 +84,7 @@ export async function linkOAuthProvider(user: User, providerId: OAuthProviderId)
     if (code === "auth/provider-already-linked") {
       throw new Error(`${providerLabel(providerId)}は既に連携済みです。`);
     }
-    throw new Error(authErrorMessage(code, "link"));
+    throw new Error(formatFirebaseAuthError(err, "link", providerId));
   }
 }
 
@@ -95,7 +113,7 @@ export async function completeAccountLink(
     await user.reload();
   } catch (err) {
     const code = (err as { code?: string }).code;
-    if (code) throw new Error(authErrorMessage(code, existingMethod === "password" ? "password" : "link"));
+    if (code) throw new Error(formatFirebaseAuthError(err, existingMethod === "password" ? "password" : "link"));
     if (err instanceof Error) throw err;
     throw new Error(authErrorMessage("unknown"));
   }
@@ -112,29 +130,34 @@ export async function signInOrThrow(
     const error = err as { code?: string; customData?: { email?: string } };
     const code = error.code ?? "unknown";
 
-    if (code === "auth/account-exists-with-different-credential" && error.customData?.email) {
-      const pendingCredential = credentialFromAuthError(err);
-      const methods = await fetchSignInMethodsForEmail(auth, error.customData.email);
-      const preferred = methods.filter((m) => m !== providerId);
-      const existingMethods = preferred.length > 0 ? preferred : methods;
+    if (code === "auth/account-exists-with-different-credential") {
+      const pendingCredential = credentialFromAuthError(err, providerId);
+      const email = error.customData?.email;
 
-      if (pendingCredential && existingMethods.length > 0) {
-        throw new AccountLinkRequiredError(
-          error.customData.email,
-          existingMethods,
-          pendingCredential,
-          providerId,
-        );
+      if (email) {
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+        const preferred = methods.filter((m) => m !== providerId);
+        const existingMethods = preferred.length > 0 ? preferred : methods;
+
+        if (pendingCredential && existingMethods.length > 0) {
+          throw new AccountLinkRequiredError(email, existingMethods, pendingCredential, providerId);
+        }
+
+        const existing = existingMethods[0];
+        if (existing) {
+          throw new Error(
+            `このメールアドレスは${signInMethodLabel(existing)}で登録済みです。${signInMethodLabel(existing)}でログイン後、設定から他の方法を連携できます。`,
+          );
+        }
       }
 
-      const existing = existingMethods[0];
-      if (existing) {
+      if (pendingCredential) {
         throw new Error(
-          `このメールアドレスは${signInMethodLabel(existing)}で登録済みです。${signInMethodLabel(existing)}でログイン後、設定から他の方法を連携できます。`,
+          `${providerLabel(providerId)}は別の方法で登録済みのアカウントと関連付けられます。元の方法でログイン後、設定から${providerLabel(providerId)}を連携してください。`,
         );
       }
     }
 
-    throw new Error(authErrorMessage(code));
+    throw new Error(formatFirebaseAuthError(err, "signin", providerId));
   }
 }
