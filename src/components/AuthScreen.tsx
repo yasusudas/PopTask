@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { BalloonLogo, GoogleIcon } from "./icons";
+import { BalloonLogo, GithubIcon, GoogleIcon, MicrosoftIcon } from "./icons";
 import { useAuth } from "../auth/AuthContext";
 import { hasLocalData } from "../sync/syncEngine";
 
 type AuthMode = "login" | "signup" | "reset";
 
 export function AuthScreen() {
-  const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithGithub, signInWithMicrosoft, resetPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,12 +40,12 @@ export function AuthScreen() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleOAuthSignIn = async (action: () => Promise<void>) => {
     setError(null);
     setInfo(null);
     setSubmitting(true);
     try {
-      await signInWithGoogle();
+      await action();
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました。");
     } finally {
@@ -122,15 +122,35 @@ export function AuthScreen() {
             <div className="auth-divider" aria-hidden="true">
               <span>または</span>
             </div>
-            <button
-              type="button"
-              className="button-google"
-              disabled={submitting}
-              onClick={() => void handleGoogleSignIn()}
-            >
-              <GoogleIcon size={18} />
-              Googleで{mode === "login" ? "ログイン" : "登録"}
-            </button>
+            <div className="auth-oauth-buttons">
+              <button
+                type="button"
+                className="button-oauth"
+                disabled={submitting}
+                onClick={() => void handleOAuthSignIn(signInWithGoogle)}
+              >
+                <GoogleIcon size={18} />
+                Google
+              </button>
+              <button
+                type="button"
+                className="button-oauth"
+                disabled={submitting}
+                onClick={() => void handleOAuthSignIn(signInWithGithub)}
+              >
+                <GithubIcon size={18} />
+                GitHub
+              </button>
+              <button
+                type="button"
+                className="button-oauth"
+                disabled={submitting}
+                onClick={() => void handleOAuthSignIn(signInWithMicrosoft)}
+              >
+                <MicrosoftIcon size={18} />
+                Microsoft
+              </button>
+            </div>
           </>
         )}
 

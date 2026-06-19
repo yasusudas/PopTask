@@ -9,12 +9,16 @@ import {
 } from "react";
 import {
   createUserWithEmailAndPassword,
+  GithubAuthProvider,
   GoogleAuthProvider,
+  OAuthProvider,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  type Auth,
+  type AuthProvider,
   type User,
 } from "firebase/auth";
 import { authErrorMessage } from "./authErrors";
@@ -27,11 +31,22 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithGithub: () => Promise<void>;
+  signInWithMicrosoft: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+async function signInWithProvider(auth: Auth, provider: AuthProvider) {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (err) {
+    const code = (err as { code?: string }).code ?? "unknown";
+    throw new Error(authErrorMessage(code));
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -71,13 +86,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = useCallback(async () => {
     if (!auth) throw new Error("Auth is not initialized");
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (err) {
-      const code = (err as { code?: string }).code ?? "unknown";
-      throw new Error(authErrorMessage(code));
-    }
+    await signInWithProvider(auth, new GoogleAuthProvider());
+  }, []);
+
+  const signInWithGithub = useCallback(async () => {
+    if (!auth) throw new Error("Auth is not initialized");
+    await signInWithProvider(auth, new GithubAuthProvider());
+  }, []);
+
+  const signInWithMicrosoft = useCallback(async () => {
+    if (!auth) throw new Error("Auth is not initialized");
+    const provider = new OAuthProvider("microsoft.com");
+    provider.setCustomParameters({ prompt: "select_account" });
+    await signInWithProvider(auth, provider);
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
@@ -103,10 +124,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       signInWithGoogle,
+      signInWithGithub,
+      signInWithMicrosoft,
       resetPassword,
       logout,
     }),
-    [user, loading, signIn, signUp, signInWithGoogle, resetPassword, logout],
+    [user, loading, signIn, signUp, signInWithGoogle, signInWithGithub, signInWithMicrosoft, resetPassword, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
