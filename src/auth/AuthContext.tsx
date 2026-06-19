@@ -9,9 +9,11 @@ import {
 } from "react";
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   type User,
 } from "firebase/auth";
@@ -24,6 +26,7 @@ interface AuthContextValue {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -66,6 +69,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const signInWithGoogle = useCallback(async () => {
+    if (!auth) throw new Error("Auth is not initialized");
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      const code = (err as { code?: string }).code ?? "unknown";
+      throw new Error(authErrorMessage(code));
+    }
+  }, []);
+
   const resetPassword = useCallback(async (email: string) => {
     if (!auth) throw new Error("Auth is not initialized");
     try {
@@ -88,10 +102,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       signIn,
       signUp,
+      signInWithGoogle,
       resetPassword,
       logout,
     }),
-    [user, loading, signIn, signUp, resetPassword, logout],
+    [user, loading, signIn, signUp, signInWithGoogle, resetPassword, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

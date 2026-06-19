@@ -16,6 +16,12 @@ export function authErrorMessage(code: string): string {
       return "試行回数が多すぎます。しばらく待ってから再度お試しください。";
     case "auth/network-request-failed":
       return "ネットワークエラーが発生しました。接続を確認してください。";
+    case "auth/popup-closed-by-user":
+      return "ログインがキャンセルされました。";
+    case "auth/unauthorized-domain":
+      return "このドメインは Firebase で認証が許可されていません。コンソールの承認済みドメインに追加してください。";
+    case "auth/account-exists-with-different-credential":
+      return "同じメールアドレスで別の方法のログインが既に登録されています。";
     default:
       return "認証に失敗しました。時間をおいて再度お試しください。";
   }

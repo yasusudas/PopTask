@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { BalloonLogo } from "./icons";
+import { BalloonLogo, GoogleIcon } from "./icons";
 import { useAuth } from "../auth/AuthContext";
 
 type AuthMode = "login" | "signup" | "reset";
 
 export function AuthScreen() {
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +27,19 @@ export function AuthScreen() {
         await resetPassword(email);
         setInfo("パスワード再設定用のメールを送信しました。");
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "エラーが発生しました。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setInfo(null);
+    setSubmitting(true);
+    try {
+      await signInWithGoogle();
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました。");
     } finally {
@@ -92,6 +105,23 @@ export function AuthScreen() {
                   : "再設定メールを送信"}
           </button>
         </form>
+
+        {mode !== "reset" && (
+          <>
+            <div className="auth-divider" aria-hidden="true">
+              <span>または</span>
+            </div>
+            <button
+              type="button"
+              className="button-google"
+              disabled={submitting}
+              onClick={() => void handleGoogleSignIn()}
+            >
+              <GoogleIcon size={18} />
+              Googleで{mode === "login" ? "ログイン" : "登録"}
+            </button>
+          </>
+        )}
 
         <div className="auth-links">
           {mode === "login" && (
