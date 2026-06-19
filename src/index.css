@@ -124,6 +124,17 @@ select {
   font-weight: 800;
   letter-spacing: 0.02em;
   padding: 4px 10px;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius);
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-logo:hover {
+  background: var(--bg);
 }
 
 .sidebar-nav {
@@ -224,7 +235,8 @@ select {
   z-index: var(--z-chrome);
 }
 
-.app-header h1 {
+.app-header h1,
+.app-header-home {
   font-size: 20px;
   font-weight: 800;
   letter-spacing: 0.02em;
@@ -232,6 +244,19 @@ select {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.app-header-home {
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 4px 0;
+  border-radius: var(--radius);
+}
+
+.app-header-home:hover {
+  opacity: 0.8;
 }
 
 .icon-button {

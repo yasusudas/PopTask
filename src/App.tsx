@@ -198,6 +198,13 @@ export default function App() {
     [showToast],
   );
 
+  const goHome = useCallback(() => {
+    setView("main");
+    setTab("active");
+    setSearchOpen(false);
+    setSearchQuery("");
+  }, []);
+
   if (authEnabled && authLoading) {
     return <div className="auth-loading">読み込み中...</div>;
   }
@@ -399,6 +406,7 @@ export default function App() {
             setTab(next);
           }}
           onOpenSettings={() => setView("settings")}
+          onGoHome={goHome}
         />
       )}
 
@@ -429,10 +437,10 @@ export default function App() {
               </>
             ) : (
               <>
-                <h1>
+                <button type="button" className="app-header-home" onClick={goHome} aria-label="ホーム">
                   <BalloonLogo />
                   Puffy
-                </h1>
+                </button>
                 <button
                   type="button"
                   className="icon-button"

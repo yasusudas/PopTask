@@ -8,6 +8,7 @@ interface SidebarProps {
   overdueCount: number;
   onSelectTab: (tab: MainTab) => void;
   onOpenSettings: () => void;
+  onGoHome: () => void;
 }
 
 const NAV_ITEMS: { id: MainTab; label: string; icon: typeof BalloonTabIcon }[] = [
@@ -17,13 +18,13 @@ const NAV_ITEMS: { id: MainTab; label: string; icon: typeof BalloonTabIcon }[] =
 ];
 
 /** タブレット・デスクトップ用の左サイドバーナビゲーション */
-export function Sidebar({ tab, view, activeCount, overdueCount, onSelectTab, onOpenSettings }: SidebarProps) {
+export function Sidebar({ tab, view, activeCount, overdueCount, onSelectTab, onOpenSettings, onGoHome }: SidebarProps) {
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
+      <button type="button" className="sidebar-logo" onClick={onGoHome} aria-label="ホーム">
         <BalloonLogo size={30} />
         <span>Puffy</span>
-      </div>
+      </button>
       <nav className="sidebar-nav" aria-label="主タブ">
         {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
           <button
