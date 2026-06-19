@@ -53,7 +53,6 @@ export function AuthScreen() {
         <div className="auth-brand">
           <BalloonLogo />
           <h1>Puffy</h1>
-          <p>タスクを風船で管理。アカウントでデバイス間同期。</p>
         </div>
 
         <form className="auth-form" onSubmit={(e) => void handleSubmit(e)}>
