@@ -21,7 +21,7 @@ interface TaskFormProps {
   submitLabel: string;
   /** タスク作成時のみ期限が未来であることを必須にする */
   requireFutureDue?: boolean;
-  /** 期限超過中: カラーピッカーを選択不可にする */
+  /** 期限超過中: カラーピッカー自体を非表示にする */
   colorDisabled?: boolean;
   onSubmit: (values: TaskFormValues) => void;
 }
@@ -107,71 +107,69 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
         </select>
       </div>
 
-      <div className="field-group">
-        <span id="color-label" style={{ fontSize: 13, fontWeight: 700, color: "var(--text-sub)" }}>
-          風船の色
-        </span>
-        <div
-          className={`color-swatches task-color-swatches${colorDisabled ? " is-disabled" : ""}`}
-          role="group"
-          aria-labelledby="color-label"
-          aria-disabled={colorDisabled}
-        >
-          <div className="color-swatches-row">
-            {TASK_COLOR_ROW1.map((id) =>
-              id === "auto" ? (
-                <button
-                  key="auto"
-                  type="button"
-                  className={`color-swatch color-swatch-default${colorId === null ? " is-selected" : ""}`}
-                  aria-pressed={colorId === null}
-                  aria-label="フォルダの色に従う"
-                  title="フォルダの色に従う"
-                  disabled={colorDisabled}
-                  onClick={() => setColorId(null)}
-                >
-                  自動
-                </button>
-              ) : (
-                (() => {
-                  const c = folderColorById(id);
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      className={`color-swatch${colorId === c.id ? " is-selected" : ""}`}
-                      style={{ backgroundColor: c.hex }}
-                      aria-pressed={colorId === c.id}
-                      aria-label={c.label}
-                      title={c.label}
-                      disabled={colorDisabled}
-                      onClick={() => setColorId(c.id)}
-                    />
-                  );
-                })()
-              ),
-            )}
-          </div>
-          <div className="color-swatches-row">
-            {TASK_COLOR_ROW2.map((id) => {
-              const c = folderColorById(id);
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  className={`color-swatch${colorId === c.id ? " is-selected" : ""}`}
-                  style={{ backgroundColor: c.hex }}
-                  aria-pressed={colorId === c.id}
-                  aria-label={c.label}
-                  title={c.label}
-                  disabled={colorDisabled}
-                  onClick={() => setColorId(c.id)}
-                />
-              );
-            })}
+      {!colorDisabled && (
+        <div className="field-group">
+          <span id="color-label" style={{ fontSize: 13, fontWeight: 700, color: "var(--text-sub)" }}>
+            風船の色
+          </span>
+          <div
+            className="color-swatches task-color-swatches"
+            role="group"
+            aria-labelledby="color-label"
+          >
+            <div className="color-swatches-row">
+              {TASK_COLOR_ROW1.map((id) =>
+                id === "auto" ? (
+                  <button
+                    key="auto"
+                    type="button"
+                    className={`color-swatch color-swatch-default${colorId === null ? " is-selected" : ""}`}
+                    aria-pressed={colorId === null}
+                    aria-label="フォルダの色に従う"
+                    title="フォルダの色に従う"
+                    onClick={() => setColorId(null)}
+                  >
+                    自動
+                  </button>
+                ) : (
+                  (() => {
+                    const c = folderColorById(id);
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={`color-swatch${colorId === c.id ? " is-selected" : ""}`}
+                        style={{ backgroundColor: c.hex }}
+                        aria-pressed={colorId === c.id}
+                        aria-label={c.label}
+                        title={c.label}
+                        onClick={() => setColorId(c.id)}
+                      />
+                    );
+                  })()
+                ),
+              )}
+            </div>
+            <div className="color-swatches-row">
+              {TASK_COLOR_ROW2.map((id) => {
+                const c = folderColorById(id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`color-swatch${colorId === c.id ? " is-selected" : ""}`}
+                    style={{ backgroundColor: c.hex }}
+                    aria-pressed={colorId === c.id}
+                    aria-label={c.label}
+                    title={c.label}
+                    onClick={() => setColorId(c.id)}
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="field-group">
         <span id="inflation-label" style={{ fontSize: 13, fontWeight: 700, color: "var(--text-sub)" }}>
