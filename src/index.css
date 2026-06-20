@@ -1,22 +1,40 @@
 :root {
-  --bg: #f6f8fb;
+  /* ===== Refined Minimal — neutral canvas, single indigo accent ===== */
+  --bg: #f7f7f9;               /* very light grey canvas */
   --surface: #ffffff;
-  --surface-hover: #f1f5f9;
-  --text: #0f172a;
-  --text-sub: #475569;
-  --text-faint: #64748b;
-  --border: #e2e8f0;
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
-  --primary-soft: #eff6ff;
-  --success: #16a34a;
-  --success-dark: #15803d;
+  --surface-hover: #f0f0f3;
+  --surface-2: #f0f0f3;
+
+  /* Ink & refined neutral greys (typography-led) */
+  --text: #1a1a1f;            /* near-black ink */
+  --text-sub: #56565f;
+  --text-faint: #87878f;
+
+  /* Hairlines */
+  --border: #eaeaee;
+  --border-strong: #dededf;
+
+  /* Single accent: indigo (藍), used sparingly */
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --primary-soft: #f2f2fb;
+  --accent: #4f46e5;          /* keep = primary so existing refs stay single-color */
+
+  /* Semantic (functional only) */
+  --success: #15803d;
+  --success-dark: #166534;
   --danger: #dc2626;
   --danger-dark: #b91c1c;
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.07);
-  --shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 12px 40px rgba(15, 23, 42, 0.18);
-  --radius: 14px;
+
+  /* Delicate, near-neutral shadows */
+  --shadow-sm: 0 1px 2px rgba(20, 20, 28, 0.04);
+  --shadow: 0 1px 3px rgba(20, 20, 28, 0.05), 0 8px 18px -8px rgba(20, 20, 28, 0.09);
+  --shadow-md: 0 2px 6px rgba(20, 20, 28, 0.05), 0 14px 30px -12px rgba(20, 20, 28, 0.11);
+  --shadow-lg: 0 8px 28px -10px rgba(20, 20, 28, 0.14), 0 24px 56px -20px rgba(20, 20, 28, 0.12);
+
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
   --nav-height: 60px;
   --header-height: 56px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -25,8 +43,11 @@
   --z-overlay-ui: 30;
   --z-modal: 40;
   --z-toast: 60;
-  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", system-ui, -apple-system, sans-serif;
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", system-ui, -apple-system, sans-serif;
   color: var(--text);
+  font-feature-settings: "palt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
 }
 
 * {
@@ -44,9 +65,11 @@ body,
 body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.65;
+  letter-spacing: 0.005em;
 }
 
 button {
@@ -207,6 +230,7 @@ select {
 .topbar h1 {
   font-size: 19px;
   font-weight: 800;
+  letter-spacing: -0.01em;
   margin-right: auto;
 }
 
@@ -283,15 +307,16 @@ select {
   height: 42px;
   padding: 0 14px;
   border: 1px solid var(--border);
-  border-radius: 21px;
-  background: var(--bg);
+  border-radius: 10px;
+  background: var(--surface-2);
   color: var(--text-faint);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
 .search-input:focus-within {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
 }
 
 .search-input input {
@@ -417,7 +442,7 @@ select {
   flex: 1;
   position: relative;
   overflow-y: auto;
-  background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 40%, #faf5ff 100%);
+  background: linear-gradient(180deg, #fafafb 0%, #f5f5f7 100%);
 }
 
 .balloon-field {
@@ -444,9 +469,9 @@ select {
   backface-visibility: hidden;
   will-change: transform;
   box-shadow:
-    inset -6px -8px 14px rgba(0, 0, 0, 0.14),
-    inset 6px 8px 14px rgba(255, 255, 255, 0.22),
-    0 4px 14px rgba(15, 23, 42, 0.14);
+    inset -5px -7px 12px rgba(0, 0, 0, 0.11),
+    inset 6px 7px 13px rgba(255, 255, 255, 0.32),
+    0 8px 18px -6px rgba(20, 20, 28, 0.16);
   cursor: grab;
 }
 
@@ -458,13 +483,13 @@ select {
 .balloon::before {
   content: "";
   position: absolute;
-  top: 12%;
-  left: 18%;
-  width: 26%;
-  height: 18%;
+  top: 11%;
+  left: 16%;
+  width: 34%;
+  height: 25%;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.42);
-  transform: rotate(-25deg);
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
+  transform: rotate(-22deg);
   pointer-events: none;
 }
 
@@ -495,10 +520,10 @@ select {
 
 .balloon-string path {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.92);
-  stroke-width: 1.6;
+  stroke: rgba(26, 26, 31, 0.18);
+  stroke-width: 1.3;
   stroke-linecap: round;
-  opacity: 0.88;
+  opacity: 0.9;
 }
 
 .balloon-title {
@@ -512,6 +537,15 @@ select {
   max-width: 100%;
 }
 
+.balloon-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+
 .balloon-due {
   font-size: 0.82em;
   font-weight: 600;
@@ -519,12 +553,17 @@ select {
 }
 
 .balloon-overdue-label {
-  font-size: 0.72em;
   font-weight: 800;
   padding: 1px 8px;
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.92);
   color: var(--danger);
+  white-space: nowrap;
+  max-width: calc(100% - 4px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+  flex-shrink: 0;
 }
 
 .balloon-imminent-label {
@@ -538,20 +577,17 @@ select {
 }
 
 .balloon-folder-tag {
-  position: absolute;
-  bottom: 14%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 9px;
+  font-size: max(8px, 0.62em);
   font-weight: 700;
   line-height: 1;
-  padding: 3px 8px;
+  padding: 2px 6px;
   border-radius: 8px;
   white-space: nowrap;
-  max-width: 80%;
+  max-width: 90%;
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
+  flex-shrink: 0;
 }
 
 @keyframes balloon-shake {
@@ -662,7 +698,7 @@ select {
 
 .empty-state .empty-icon {
   display: inline-flex;
-  color: #94a3b8;
+  color: #c9c9d0;
 }
 
 .first-task-hint {
@@ -722,7 +758,7 @@ select {
   justify-content: center;
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 6px 16px -4px rgba(79, 70, 229, 0.4), 0 2px 6px rgba(20, 20, 28, 0.12);
   z-index: var(--z-overlay-ui);
 }
 
@@ -788,7 +824,8 @@ select {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 16px 6px;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -851,7 +888,7 @@ select {
 .field-group select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
 }
 
 .field-group textarea {
@@ -1124,7 +1161,7 @@ select {
 
 .history-card:hover {
   box-shadow: var(--shadow);
-  border-color: #cbd5e1;
+  border-color: var(--border-strong);
 }
 
 .history-card .card-color {
@@ -1201,7 +1238,7 @@ select {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: rgba(15, 23, 42, 0.92);
+  background: rgba(24, 24, 30, 0.96);
   color: #fff;
   padding: 10px 16px;
   border-radius: 12px;
@@ -1218,14 +1255,14 @@ select {
 }
 
 .toast button {
-  color: #93c5fd;
+  color: #b3aef6;
   font-weight: 800;
   white-space: nowrap;
   min-height: 32px;
 }
 
 .toast button:hover {
-  color: #bfdbfe;
+  color: #cdc9fb;
 }
 
 .toast.error {
@@ -1279,7 +1316,7 @@ select {
 }
 
 .folder-color-swatches .color-swatch:hover {
-  border-color: #cbd5e1;
+  border-color: var(--border-strong);
 }
 
 .folder-color-swatches .color-swatch[aria-pressed="true"] {
@@ -1441,10 +1478,7 @@ select {
   display: grid;
   place-items: center;
   padding: 24px 16px;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(56, 189, 248, 0.15), transparent 55%),
-    radial-gradient(ellipse at 80% 100%, rgba(167, 139, 250, 0.12), transparent 50%),
-    var(--bg);
+  background: var(--bg);
 }
 
 .auth-card {
@@ -1452,9 +1486,9 @@ select {
   max-width: 420px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px);
-  box-shadow: var(--shadow-md);
-  padding: 28px 24px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 32px 28px;
   display: flex;
   flex-direction: column;
   gap: 20px;

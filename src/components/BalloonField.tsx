@@ -16,6 +16,18 @@ function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
+/** 期限超過ラベル ("期限超過 XX分超過") が白ピル内で1行に収まるようフォントサイズを調整 */
+function overdueLabelFontSize(balloonFontSize: number, diameter: number, overdueText: string): number {
+  const text = `期限超過 ${overdueText}`;
+  const base = balloonFontSize * 0.72;
+  const maxWidth = diameter - 20;
+  const padding = 16;
+  const charWidth = 0.62;
+  const needed = text.length * base * charWidth + padding;
+  if (needed <= maxWidth) return base;
+  return Math.max(7, (maxWidth - padding) / (text.length * charWidth));
+}
+
 interface BalloonFieldProps {
   tasks: Task[]; // 優先度順にソート済み
   folders: Map<string, Folder>;
@@ -378,7 +390,10 @@ export function BalloonField({ tasks, folders, now, poppingIds, overdueCount, on
               }}
             >
               {b.overdue && (
-                <span className="balloon-overdue-label">
+                <span
+                  className="balloon-overdue-label"
+                  style={{ fontSize: overdueLabelFontSize(fontSize, d, b.overdueText) }}
+                >
                   期限超過 {b.overdueText}
                 </span>
               )}
@@ -388,15 +403,17 @@ export function BalloonField({ tasks, folders, now, poppingIds, overdueCount, on
                 </span>
               )}
               <span className="balloon-title">{b.task.title}</span>
-              <span className="balloon-due">{b.dueText}</span>
-              {b.overdue && b.task.folderId && (
-                <span
-                  className="balloon-folder-tag"
-                  style={{ background: b.folderColor, color: textColorFor(b.folderColor) }}
-                >
-                  {b.folderName}
-                </span>
-              )}
+              <div className="balloon-meta">
+                <span className="balloon-due">{b.dueText}</span>
+                {b.overdue && b.task.folderId && (
+                  <span
+                    className="balloon-folder-tag"
+                    style={{ background: b.folderColor, color: textColorFor(b.folderColor) }}
+                  >
+                    {b.folderName}
+                  </span>
+                )}
+              </div>
               <svg className="balloon-string" viewBox="0 0 18 114" aria-hidden="true">
                 <path d="M9 0 C 2 33, 16 66, 9 114" />
               </svg>

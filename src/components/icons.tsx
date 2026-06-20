@@ -1,74 +1,50 @@
-import { useId } from "react";
-
 interface IconProps {
   size?: number;
 }
 
-/** ヘッダー・タイトル用の高品質風船ロゴ (アプリアイコンとは別デザイン) */
-export function BalloonLogo({ size = 26 }: IconProps) {
-  const uid = useId().replace(/:/g, "");
-  const body = `bl-body-${uid}`;
-  const shine = `bl-shine-${uid}`;
-  const blush = `bl-blush-${uid}`;
-  const rim = `bl-rim-${uid}`;
-
+/** ヘッダー・タイトル用のフラット風船ロゴ (アプリアイコンとは別デザイン) */
+export function BalloonLogo({ size = 28 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true">
-      <defs>
-        <radialGradient id={body} cx="32%" cy="26%" r="72%">
-          <stop offset="0%" stopColor="#BFDBFE" />
-          <stop offset="28%" stopColor="#4F8FF7" />
-          <stop offset="68%" stopColor="#2563EB" />
-          <stop offset="100%" stopColor="#1E3A8A" />
-        </radialGradient>
-        <radialGradient id={shine} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.92" />
-          <stop offset="60%" stopColor="#FFFFFF" stopOpacity="0.12" />
-          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id={blush} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#93C5FD" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#93C5FD" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id={rim} x1="26" y1="8" x2="34" y2="24" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#1D4ED8" stopOpacity="0" />
-          <stop offset="100%" stopColor="#172554" stopOpacity="0.28" />
-        </linearGradient>
-      </defs>
-
-      <g transform="rotate(-7 20 18)">
-        <path
-          fill={`url(#${body})`}
-          d="M20 5.5
-             C27.8 5.5 32.8 11.2 32.2 17.8
-             C31.6 24.2 27.2 28.8 20 28.8
-             C12.8 28.8 8.4 24.2 7.8 17.8
-             C7.2 11.2 12.2 5.5 20 5.5Z"
-        />
-        <path
-          fill={`url(#${rim})`}
-          d="M20 5.5
-             C27.8 5.5 32.8 11.2 32.2 17.8
-             C31.6 24.2 27.2 28.8 20 28.8
-             C12.8 28.8 8.4 24.2 7.8 17.8
-             C7.2 11.2 12.2 5.5 20 5.5Z"
-        />
-        <ellipse cx="14.8" cy="12.2" rx="5.2" ry="6.4" fill={`url(#${shine})`} />
-        <ellipse cx="23.8" cy="18.6" rx="2.8" ry="3.4" fill={`url(#${blush})`} />
-        <circle cx="26.6" cy="11.4" r="1.1" fill="#FFFFFF" opacity="0.88" />
-        <path
-          fill="#1D4ED8"
-          d="M20 28.8 L17.1 32.8 C16.5 33.7 17.1 34.8 18.2 34.8 H21.8 C22.9 34.8 23.5 33.7 22.9 32.8 Z"
-        />
-      </g>
-
       <path
-        d="M20 34.8 C17.2 36.8 18.2 38.6 20 39.8 C21.8 38.6 22.8 36.8 20 34.8"
-        stroke="#94A3B8"
-        strokeWidth="1.35"
+        d="M20 30.9 C18.6 33.4 18.9 36.5 20.9 39"
+        stroke="#FFFFFF"
+        strokeWidth="1.15"
         strokeLinecap="round"
         fill="none"
       />
+      <g transform="rotate(-6 20 17.5)">
+        <path
+          fill="#1D4ED8"
+          d="M20 5.5
+             C27.9 5.5 33.2 11.4 32.6 18.4
+             C31.9 25.3 27.3 30.2 20 30.5
+             C12.7 30.2 8.1 25.3 7.4 18.4
+             C6.8 11.4 12.1 5.5 20 5.5Z"
+        />
+        <path
+          fill="#2563EB"
+          d="M20 5.5
+             C16.8 5.5 13.9 6.5 11.9 8.4
+             C8.8 11.2 6.9 15 7.4 18.4
+             C8.1 25.3 12.7 30.2 20 30.5
+             C23 27.2 24.5 22.3 24.4 16.6
+             C24.4 11.4 22.9 7.9 20 5.5Z"
+        />
+        <ellipse cx="14.5" cy="12.4" rx="5.1" ry="6.2" transform="rotate(15 14.5 12.4)" fill="#7DD3FC" />
+        <ellipse cx="13.2" cy="11.1" rx="2.7" ry="3.3" transform="rotate(15 13.2 11.1)" fill="#FFFFFF" />
+        <path d="M26.4 10.9 C29.2 13.5 30.3 17.6 29.3 21.5" stroke="#93C5FD" strokeWidth="1.7" strokeLinecap="round" />
+        <circle cx="26.9" cy="12.7" r="1" fill="#FFFFFF" />
+        <path
+          fill="#1E40AF"
+          d="M20 30.1
+             L16.9 35
+             C16.3 36 17 37.2 18.2 37.2
+             H21.8
+             C23 37.2 23.7 36 23.1 35Z"
+        />
+        <path d="M18.1 34.1 C19.3 34.7 20.7 34.7 21.9 34.1" stroke="#60A5FA" strokeWidth="0.9" strokeLinecap="round" />
+      </g>
     </svg>
   );
 }
